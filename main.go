@@ -11,7 +11,7 @@ import (
 	"github.com/google/uuid"
 )
 
-type config struct {
+type env struct {
 	port string
 }
 
@@ -50,13 +50,13 @@ func main() {
 	log.Fatal(http.ListenAndServe(fmt.Sprintf(":%s", envCfg.port), nil))
 }
 
-func envConfig() config {
+func envConfig() env {
 	port, ok := os.LookupEnv("PORT")
 	if !ok {
 		panic("PORT not provided")
 	}
 
-	return config{port}
+	return env{port}
 }
 
 func generateSession() session { //todo: pass it by ref not by copy?
