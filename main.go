@@ -52,6 +52,7 @@ func main() {
 
 		// io.WriteString(w, fmt.Sprintf("Hello, world!\n%s", sessions))
 		io.WriteString(w, fmt.Sprintf("Hello, world! %s\n", session.id))
+		log.Printf("sessions:\n%s", sessions)
 	})
 
 	log.Fatal(http.ListenAndServe(fmt.Sprintf(":%s", envCfg.port), nil))
@@ -71,23 +72,38 @@ func initSession(w http.ResponseWriter, req *http.Request, sessions []session) s
 	var sess session
 
 	cookie, err := req.Cookie(SESSION_COOKIE_NAME)
-	if cookie != nil {
-		sid := cookie.Value
-		i := slices.IndexFunc(sessions, func(s session) bool {
-			return s.id == sid
-		})
-
-		if i != -1 {
-			sess = sessions[i]
-		} else {
-			err = http.ErrNoCookie
-		}
-	}
-
 	if err != nil {
 		sess := generateSession()
 		sessions = append(sessions, sess)
+		c := constructCookie(sess)
+		http.SetCookie(w, &c)
+
+		return sess
 	}
+
+	if cookie == nil {
+		sess := generateSession()
+		sessions = append(sessions, sess)
+		c := constructCookie(sess)
+		http.SetCookie(w, &c)
+
+		return sess
+	}
+
+	sid := cookie.Value
+	i := slices.IndexFunc(sessions, func(s session) bool {
+		return s.id == sid
+	})
+	if i == -1 {
+		sess := generateSession()
+		sessions = append(sessions, sess)
+		c := constructCookie(sess)
+		http.SetCookie(w, &c)
+
+		return sess
+	}
+
+	sess = sessions[i]
 
 	c := constructCookie(sess)
 	http.SetCookie(w, &c)
