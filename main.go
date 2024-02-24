@@ -16,6 +16,12 @@ type env struct {
 	port string
 }
 
+func (e env) String() string {
+	s := fmt.Sprintf("port: %s\n", e.port)
+	// s = s + fmt.Sprintf("foo: %s\n", e.port)
+	return s
+}
+
 type session struct {
 	id        string
 	expiresAt time.Time
@@ -23,7 +29,7 @@ type session struct {
 
 type sessions []session
 
-func (ss sessions) toString() string {
+func (ss sessions) String() string {
 	out := ""
 	for _, s := range ss {
 		out = out + s.id + "\n"
@@ -38,14 +44,13 @@ func main() {
 	envCfg := envConfig()
 	sessions := sessions{}
 
-	fmt.Println("hello world")
-	log.Println("hello console")
-	log.Printf("env conf: %v", envCfg)
+	log.Println("staring server...")
+	log.Printf("env conf:\n%s", envCfg)
 
 	http.HandleFunc("/", func(w http.ResponseWriter, req *http.Request) {
 		session := initSession(w, req, sessions)
-		
-		// io.WriteString(w, fmt.Sprintf("Hello, world!\n%s", sessions.toString()))
+
+		// io.WriteString(w, fmt.Sprintf("Hello, world!\n%s", sessions))
 		io.WriteString(w, fmt.Sprintf("Hello, world! %s\n", session.id))
 	})
 
@@ -68,8 +73,8 @@ func initSession(w http.ResponseWriter, req *http.Request, sessions []session) s
 	cookie, err := req.Cookie(SESSION_COOKIE_NAME)
 	if cookie != nil {
 		sid := cookie.Value
-		i := slices.IndexFunc(sessions, func (s session) bool{
-			return s.id == sid 
+		i := slices.IndexFunc(sessions, func(s session) bool {
+			return s.id == sid
 		})
 
 		if i != -1 {
@@ -78,10 +83,10 @@ func initSession(w http.ResponseWriter, req *http.Request, sessions []session) s
 			err = http.ErrNoCookie
 		}
 	}
-	
+
 	if err != nil {
 		sess := generateSession()
-		sessions = append(sessions, sess)			
+		sessions = append(sessions, sess)
 	}
 
 	c := constructCookie(sess)
@@ -92,16 +97,15 @@ func initSession(w http.ResponseWriter, req *http.Request, sessions []session) s
 
 func constructCookie(s session) http.Cookie {
 	return http.Cookie{
-        Name:     SESSION_COOKIE_NAME,
-        Value:    s.id,
-        Path:     "/",
-        MaxAge:   3600,
-        HttpOnly: true,
-        Secure:   true,
-        SameSite: http.SameSiteLaxMode,
-    }
+		Name:     SESSION_COOKIE_NAME,
+		Value:    s.id,
+		Path:     "/",
+		MaxAge:   3600,
+		HttpOnly: true,
+		Secure:   true,
+		SameSite: http.SameSiteLaxMode,
+	}
 }
-
 
 func generateSession() session { //todo: pass it by ref not by copy?
 	id := uuid.NewString()
