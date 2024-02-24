@@ -48,7 +48,7 @@ func main() {
 	log.Printf("env conf:\n%s", envCfg)
 
 	http.HandleFunc("/", func(w http.ResponseWriter, req *http.Request) {
-		session := initSession(w, req, sessions)
+		session := initSession(w, req, &sessions)
 
 		// io.WriteString(w, fmt.Sprintf("Hello, world!\n%s", sessions))
 		io.WriteString(w, fmt.Sprintf("Hello, world! %s\n", session.id))
@@ -67,14 +67,14 @@ func envConfig() env {
 	return env{port}
 }
 
-func initSession(w http.ResponseWriter, req *http.Request, sessions []session) session {
+func initSession(w http.ResponseWriter, req *http.Request, sessions *sessions) session {
 	var err error
 	var sess session
 
 	cookie, err := req.Cookie(SESSION_COOKIE_NAME)
 	if err != nil {
 		sess := generateSession()
-		sessions = append(sessions, sess)
+		*sessions = append(*sessions, sess)
 		c := constructCookie(sess)
 		http.SetCookie(w, &c)
 
@@ -83,7 +83,7 @@ func initSession(w http.ResponseWriter, req *http.Request, sessions []session) s
 
 	if cookie == nil {
 		sess := generateSession()
-		sessions = append(sessions, sess)
+		*sessions = append(*sessions, sess)
 		c := constructCookie(sess)
 		http.SetCookie(w, &c)
 
@@ -91,19 +91,19 @@ func initSession(w http.ResponseWriter, req *http.Request, sessions []session) s
 	}
 
 	sid := cookie.Value
-	i := slices.IndexFunc(sessions, func(s session) bool {
+	i := slices.IndexFunc(*sessions, func(s session) bool {
 		return s.id == sid
 	})
 	if i == -1 {
 		sess := generateSession()
-		sessions = append(sessions, sess)
+		*sessions = append(*sessions, sess)
 		c := constructCookie(sess)
 		http.SetCookie(w, &c)
 
 		return sess
 	}
 
-	sess = sessions[i]
+	sess = (*sessions)[i]
 
 	c := constructCookie(sess)
 	http.SetCookie(w, &c)
