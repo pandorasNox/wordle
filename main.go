@@ -48,7 +48,7 @@ func main() {
 	log.Printf("env conf:\n%s", envCfg)
 
 	http.HandleFunc("/", func(w http.ResponseWriter, req *http.Request) {
-		session := initSession(w, req, &sessions)
+		session := handleSession(w, req, &sessions)
 
 		// io.WriteString(w, fmt.Sprintf("Hello, world!\n%s", sessions))
 		io.WriteString(w, fmt.Sprintf("Hello, world! %s\n", session.id))
@@ -67,27 +67,17 @@ func envConfig() env {
 	return env{port}
 }
 
-func initSession(w http.ResponseWriter, req *http.Request, sessions *sessions) session {
+func handleSession(w http.ResponseWriter, req *http.Request, sessions *sessions) session {
 	var err error
 	var sess session
 
 	cookie, err := req.Cookie(SESSION_COOKIE_NAME)
 	if err != nil {
-		sess := generateSession()
-		*sessions = append(*sessions, sess)
-		c := constructCookie(sess)
-		http.SetCookie(w, &c)
-
-		return sess
+		return newSession(w, sessions)
 	}
 
 	if cookie == nil {
-		sess := generateSession()
-		*sessions = append(*sessions, sess)
-		c := constructCookie(sess)
-		http.SetCookie(w, &c)
-
-		return sess
+		return newSession(w, sessions)
 	}
 
 	sid := cookie.Value
@@ -95,12 +85,7 @@ func initSession(w http.ResponseWriter, req *http.Request, sessions *sessions) s
 		return s.id == sid
 	})
 	if i == -1 {
-		sess := generateSession()
-		*sessions = append(*sessions, sess)
-		c := constructCookie(sess)
-		http.SetCookie(w, &c)
-
-		return sess
+		return newSession(w, sessions)
 	}
 
 	sess = (*sessions)[i]
@@ -108,6 +93,15 @@ func initSession(w http.ResponseWriter, req *http.Request, sessions *sessions) s
 	c := constructCookie(sess)
 	http.SetCookie(w, &c)
 
+	return sess
+}
+
+func newSession(w http.ResponseWriter, sessions *sessions) session {
+	sess := generateSession()
+	*sessions = append(*sessions, sess)
+	c := constructCookie(sess)
+	http.SetCookie(w, &c)
+	
 	return sess
 }
 
