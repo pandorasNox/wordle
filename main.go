@@ -23,8 +23,9 @@ func (e env) String() string {
 }
 
 type session struct {
-	id        string
-	expiresAt time.Time
+	id            string
+	expiresAt     time.Time
+	maxAgeSeconds int
 }
 
 type sessions []session
@@ -111,16 +112,16 @@ func constructCookie(s session) http.Cookie {
 		Name:     SESSION_COOKIE_NAME,
 		Value:    s.id,
 		Path:     "/",
-		MaxAge:   3600,
+		MaxAge:   s.maxAgeSeconds,
 		HttpOnly: true,
 		Secure:   true,
 		SameSite: http.SameSiteLaxMode,
-		// Expires:  time.Now(),
+		// Expires:  s.expiresAt,
 	}
 }
 
 func generateSession() session { //todo: pass it by ref not by copy?
 	id := uuid.NewString()
 	expiresAt := time.Now().Add(SESSION_MAX_AGE_IN_SECONDS * time.Second) // todo: 24 hour, sec now only for testing
-	return session{id, expiresAt}
+	return session{id, expiresAt, SESSION_MAX_AGE_IN_SECONDS}
 }

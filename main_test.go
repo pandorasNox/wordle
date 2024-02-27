@@ -54,7 +54,7 @@ func Test_constructCookie(t *testing.T) {
 		// TODO: Add test cases.
 		{
 			"test_name",
-			args{session{fixedUuid, expireDate}},
+			args{session{fixedUuid, expireDate, SESSION_MAX_AGE_IN_SECONDS}},
 			// http.Cookie{},
 			http.Cookie{
 				Name:     SESSION_COOKIE_NAME,
