@@ -39,6 +39,7 @@ func (ss sessions) String() string {
 }
 
 const SESSION_COOKIE_NAME = "session"
+const SESSION_MAX_AGE_IN_SECONDS = 120
 
 func main() {
 	envCfg := envConfig()
@@ -101,7 +102,7 @@ func newSession(w http.ResponseWriter, sessions *sessions) session {
 	*sessions = append(*sessions, sess)
 	c := constructCookie(sess)
 	http.SetCookie(w, &c)
-	
+
 	return sess
 }
 
@@ -114,11 +115,12 @@ func constructCookie(s session) http.Cookie {
 		HttpOnly: true,
 		Secure:   true,
 		SameSite: http.SameSiteLaxMode,
+		// Expires:  time.Now(),
 	}
 }
 
 func generateSession() session { //todo: pass it by ref not by copy?
 	id := uuid.NewString()
-	expiresAt := time.Now().Add(120 * time.Second) // todo: 24 hour, sec now only for testing
+	expiresAt := time.Now().Add(SESSION_MAX_AGE_IN_SECONDS * time.Second) // todo: 24 hour, sec now only for testing
 	return session{id, expiresAt}
 }
