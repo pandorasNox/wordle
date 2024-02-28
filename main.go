@@ -33,7 +33,7 @@ type sessions []session
 func (ss sessions) String() string {
 	out := ""
 	for _, s := range ss {
-		out = out + s.id + "\n"
+		out = out + s.id + " " + s.expiresAt.String() + "\n"
 	}
 
 	return out
@@ -95,6 +95,9 @@ func handleSession(w http.ResponseWriter, req *http.Request, sessions *sessions)
 	c := constructCookie(sess)
 	http.SetCookie(w, &c)
 
+	sess.expiresAt = generateSession().expiresAt
+	(*sessions)[i] = sess
+
 	return sess
 }
 
@@ -116,7 +119,6 @@ func constructCookie(s session) http.Cookie {
 		HttpOnly: true,
 		Secure:   true,
 		SameSite: http.SameSiteLaxMode,
-		// Expires:  s.expiresAt,
 	}
 }
 
