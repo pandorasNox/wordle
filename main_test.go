@@ -2,42 +2,12 @@ package main
 
 import (
 	"net/http"
+	"net/http/httptest"
 	"reflect"
+	"strings"
 	"testing"
 	"time"
 )
-
-// func Test_generateSession(t *testing.T) {
-// 	uuid.SetRand(rand.New(rand.NewSource(1)))
-
-// 	tests := []struct {
-// 		name string
-// 		want session
-// 	}{
-// 		// TODO: Add test cases.
-// 		{
-// 			"name of test",
-// 			session{
-// 				id:        uuid.NewString(),
-// 				expiresAt: time.Now(),
-// 			},
-// 		},
-// 		{
-// 			"name of test",
-// 			session{
-// 				id:        uuid.NewString(),
-// 				expiresAt: time.Now(),
-// 			},
-// 		},
-// 	}
-// 	for _, tt := range tests {
-// 		t.Run(tt.name, func(t *testing.T) {
-// 			if got := generateSession(); !reflect.DeepEqual(got, tt.want) {
-// 				t.Errorf("generateSession() = %v, want %v", got, tt.want)
-// 			}
-// 		})
-// 	}
-// }
 
 func Test_constructCookie(t *testing.T) {
 	fixedUuid := "9566c74d-1003-4c4d-bbbb-0407d1e2c649"
@@ -51,11 +21,10 @@ func Test_constructCookie(t *testing.T) {
 		args args
 		want http.Cookie
 	}{
-		// TODO: Add test cases.
+		// add test cases here
 		{
 			"test_name",
 			args{session{fixedUuid, expireDate, SESSION_MAX_AGE_IN_SECONDS}},
-			// http.Cookie{},
 			http.Cookie{
 				Name:     SESSION_COOKIE_NAME,
 				Value:    fixedUuid,
@@ -64,7 +33,6 @@ func Test_constructCookie(t *testing.T) {
 				HttpOnly: true,
 				Secure:   true,
 				SameSite: http.SameSiteLaxMode,
-				// Expires:  expireDate,
 			},
 		},
 	}
@@ -78,6 +46,9 @@ func Test_constructCookie(t *testing.T) {
 }
 
 func Test_handleSession(t *testing.T) {
+	recorder := httptest.NewRecorder()
+	sess := sessions{}
+
 	type args struct {
 		w        http.ResponseWriter
 		req      *http.Request
@@ -88,7 +59,16 @@ func Test_handleSession(t *testing.T) {
 		args args
 		want session
 	}{
-		// TODO: Add test cases.
+		// add test cases here
+		{
+			"test handleSession is generating new session if no cookie is set",
+			args{
+				recorder,
+				httptest.NewRequest("get", "/", strings.NewReader("Hello, Reader!")),
+				&sess,
+			},
+			session{},
+		},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
