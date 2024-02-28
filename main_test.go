@@ -76,3 +76,25 @@ func Test_constructCookie(t *testing.T) {
 		})
 	}
 }
+
+func Test_handleSession(t *testing.T) {
+	type args struct {
+		w        http.ResponseWriter
+		req      *http.Request
+		sessions *sessions
+	}
+	tests := []struct {
+		name string
+		args args
+		want session
+	}{
+		// TODO: Add test cases.
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			if got := handleSession(tt.args.w, tt.args.req, tt.args.sessions); !reflect.DeepEqual(got, tt.want) {
+				t.Errorf("handleSession() = %v, want %v", got, tt.want)
+			}
+		})
+	}
+}
