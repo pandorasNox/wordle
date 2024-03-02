@@ -65,8 +65,8 @@ func Test_handleSession(t *testing.T) {
 	patches := gomonkey.ApplyFuncReturn(uuid.NewString, "12345678-abcd-1234-abcd-ab1234567890")
 	defer patches.Reset()
 
-	recorder := httptest.NewRecorder()
-	sess := sessions{}
+	// recorder := httptest.NewRecorder()
+	// sess := sessions{}
 
 	tests := []struct {
 		name string
@@ -77,15 +77,21 @@ func Test_handleSession(t *testing.T) {
 		{
 			"test handleSession is generating new session if no cookie is set",
 			args{
-				recorder,
+				httptest.NewRecorder(),
 				httptest.NewRequest("get", "/", strings.NewReader("Hello, Reader!")),
-				&sess,
+				&sessions{},
 			},
 			session{
 				id:            "12345678-abcd-1234-abcd-ab1234567890",
 				expiresAt:     time.Unix(1615256178, 0).Add(SESSION_MAX_AGE_IN_SECONDS * time.Second),
 				maxAgeSeconds: 120,
 			},
+		},
+		{
+			// todo // check out https://gist.github.com/jonnyreeves/17f91155a0d4a5d296d6 for inspiration
+			"test got cookie but no session corresponding session on server",
+			args{},
+			session{},
 		},
 	}
 	for _, tt := range tests {
