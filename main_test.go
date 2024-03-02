@@ -7,6 +7,9 @@ import (
 	"strings"
 	"testing"
 	"time"
+
+	"github.com/agiledragon/gomonkey/v2"
+	"github.com/google/uuid"
 )
 
 func Test_constructCookie(t *testing.T) {
@@ -46,14 +49,25 @@ func Test_constructCookie(t *testing.T) {
 }
 
 func Test_handleSession(t *testing.T) {
-	recorder := httptest.NewRecorder()
-	sess := sessions{}
-
 	type args struct {
 		w        http.ResponseWriter
 		req      *http.Request
 		sessions *sessions
 	}
+
+	// monkey patch time.Now
+	patchFnTime := func() time.Time {
+		return time.Unix(1615256178, 0)
+	}
+	patchesTime := gomonkey.ApplyFunc(time.Now, patchFnTime)
+	defer patchesTime.Reset()
+	// monkey patch uuid.NewString
+	patches := gomonkey.ApplyFuncReturn(uuid.NewString, "12345678-abcd-1234-abcd-ab1234567890")
+	defer patches.Reset()
+
+	recorder := httptest.NewRecorder()
+	sess := sessions{}
+
 	tests := []struct {
 		name string
 		args args
@@ -67,7 +81,11 @@ func Test_handleSession(t *testing.T) {
 				httptest.NewRequest("get", "/", strings.NewReader("Hello, Reader!")),
 				&sess,
 			},
-			session{},
+			session{
+				id:            "12345678-abcd-1234-abcd-ab1234567890",
+				expiresAt:     time.Unix(1615256178, 0).Add(SESSION_MAX_AGE_IN_SECONDS * time.Second),
+				maxAgeSeconds: 120,
+			},
 		},
 	}
 	for _, tt := range tests {
@@ -77,4 +95,13 @@ func Test_handleSession(t *testing.T) {
 			}
 		})
 	}
+
+	// fmt.Println("")
+	// fmt.Println("foooooooooooooooo")
+	// fmt.Println("")
+
+	// t.Run("test", func(t *testing.T) {
+	// 	// t.Errorf("fail %v", session{})
+	// 	t.Errorf("fail %v", handleSession(httptest.NewRecorder(), httptest.NewRequest("get", "/", strings.NewReader("Hello, Reader!")), &sessions{}))
+	// })
 }
