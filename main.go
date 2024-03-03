@@ -1,8 +1,10 @@
 package main
 
 import (
+	"embed"
 	"fmt"
-	"io"
+	"html/template"
+	//"io"
 	"log"
 	"net/http"
 	"os"
@@ -11,6 +13,9 @@ import (
 
 	"github.com/google/uuid"
 )
+
+//go:embed templates/*.html.tmpl
+var fs embed.FS
 
 type env struct {
 	port string
@@ -49,12 +54,17 @@ func main() {
 	log.Println("staring server...")
 	log.Printf("env conf:\n%s", envCfg)
 
+	t := template.Must(template.ParseFS(fs, "templates/index.html.tmpl"))
+
 	http.HandleFunc("/", func(w http.ResponseWriter, req *http.Request) {
-		session := handleSession(w, req, &sessions)
+		handleSession(w, req, &sessions)
 
 		// io.WriteString(w, fmt.Sprintf("Hello, world!\n%s", sessions))
-		io.WriteString(w, fmt.Sprintf("Hello, world! %s\n", session.id))
+		//io.WriteString(w, fmt.Sprintf("Hello, world! %s\n", session.id))
 		log.Printf("sessions:\n%s", sessions)
+
+		t.Execute(w, nil)
+
 	})
 
 	log.Fatal(http.ListenAndServe(fmt.Sprintf(":%s", envCfg.port), nil))
