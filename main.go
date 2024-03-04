@@ -4,6 +4,9 @@ import (
 	"embed"
 	"fmt"
 	"html/template"
+	"io"
+	"sync"
+
 	//"io"
 	"log"
 	"net/http"
@@ -47,6 +50,11 @@ func (ss sessions) String() string {
 const SESSION_COOKIE_NAME = "session"
 const SESSION_MAX_AGE_IN_SECONDS = 120
 
+type counterState struct {
+	mu    sync.Mutex
+	count int
+}
+
 func main() {
 	envCfg := envConfig()
 	sessions := sessions{}
@@ -64,6 +72,24 @@ func main() {
 		log.Printf("sessions:\n%s", sessions)
 
 		t.Execute(w, nil)
+
+	})
+
+	counter := counterState{count: 0}
+	http.HandleFunc("/counter", func(w http.ResponseWriter, req *http.Request) {
+		// handleSession(w, req, &sessions)
+		counter.mu.Lock()
+		counter.count++
+		defer counter.mu.Unlock()
+
+		b, err := io.ReadAll(req.Body)
+		if err != nil {
+			log.Fatalln(err)
+		}
+
+		log.Printf("Method: %s\nbody:\n%s", req.Method, b)
+
+		io.WriteString(w, fmt.Sprintf("<span>%d</span>", counter.count))
 
 	})
 
