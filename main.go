@@ -34,6 +34,7 @@ type session struct {
 	id            string
 	expiresAt     time.Time
 	maxAgeSeconds int
+	activeWord    string
 }
 
 type sessions []session
@@ -66,6 +67,24 @@ func main() {
 
 	http.HandleFunc("/", func(w http.ResponseWriter, req *http.Request) {
 		handleSession(w, req, &sessions)
+
+		// io.WriteString(w, fmt.Sprintf("Hello, world!\n%s", sessions))
+		//io.WriteString(w, fmt.Sprintf("Hello, world! %s\n", session.id))
+		log.Printf("sessions:\n%s", sessions)
+
+		t.Execute(w, nil)
+
+	})
+
+	http.HandleFunc("/wordle", func(w http.ResponseWriter, r *http.Request) {
+		s := handleSession(w, r, &sessions)
+
+		b, err := io.ReadAll(r.Body)
+		if err != nil {
+			log.Fatalln(err)
+		}
+
+		log.Printf("word: %s\nbody:\n%s", s.activeWord, b)
 
 		// io.WriteString(w, fmt.Sprintf("Hello, world!\n%s", sessions))
 		//io.WriteString(w, fmt.Sprintf("Hello, world! %s\n", session.id))
@@ -161,5 +180,6 @@ func constructCookie(s session) http.Cookie {
 func generateSession() session { //todo: pass it by ref not by copy?
 	id := uuid.NewString()
 	expiresAt := time.Now().Add(SESSION_MAX_AGE_IN_SECONDS * time.Second) // todo: 24 hour, sec now only for testing
-	return session{id, expiresAt, SESSION_MAX_AGE_IN_SECONDS}
+	activeWord := "ROATE"
+	return session{id, expiresAt, SESSION_MAX_AGE_IN_SECONDS, activeWord}
 }

@@ -5,6 +5,13 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <link href="https://unpkg.com/tailwindcss@^2/dist/tailwind.min.css" rel="stylesheet">
 
+
+<!-- Alpine Plugins -->
+<script defer src="https://cdn.jsdelivr.net/npm/@alpinejs/focus@3.x.x/dist/cdn.min.js"></script>
+ 
+<!-- Alpine Core -->
+<script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js"></script>
+
   <script src="https://unpkg.com/htmx.org@1.9.10" integrity="sha384-D1Kt99CQMDuVetoL1lrYwg5t+9QdHe7NLX/SoJYkXDFfX37iInKRy5xLSi8nO7UC" crossorigin="anonymous"></script>
 </head>
 <body>
@@ -28,38 +35,48 @@
   </div>
 </div>
 
-<div class="grid grid-cols-5 gap-4">
-  <div>1</div>
-  <div>2</div>
-  <div>3</div>
-  <div>4</div>
-  <div>5</div>
-  <div>2-1</div>
-  <div>2</div>
-  <div>3</div>
-  <div>4</div>
-  <div>2-5</div>
-  <div>3-1</div>
-  <div>2</div>
-  <div>3</div>
-  <div>4</div>
-  <div>3-5</div>
-  <div>4-1</div>
-  <div>2</div>
-  <div>3</div>
-  <div>4</div>
-  <div>4-5</div>
-  <div>5-1</div>
-  <div>2</div>
-  <div>3</div>
-  <div>4</div>
-  <div>5-5</div>
-  <div>6-1</div>
-  <div>2</div>
-  <div>3</div>
-  <div>4</div>
-  <div>6-5</div>
-</div>
+<form name="wordl" hx-post="/wordle">
+  <div class="grid grid-cols-5 gap-4">
+    <div><input @keyup="$focus.next()" type="text" name="1" class="border-2 border-gray-400" /></div>
+    <div><input type="text" name="2" class="border-2 border-gray-400" /></div>
+    <div><input type="text" name="3" class="border-2 border-gray-400" /></div>
+    <div><input type="text" name="4" class="border-2 border-gray-400" /></div>
+    <div><input type="text" name="5" class="border-2 border-gray-400" /></div>
+
+    <div><input type="text" name="6" class="border-2 border-gray-400" disabled/></div>
+    <div><input type="text" name="7" class="border-2 border-gray-400" disabled/></div>
+    <div><input type="text" name="8" class="border-2 border-gray-400" disabled/></div>
+    <div><input type="text" name="9" class="border-2 border-gray-400" disabled/></div>
+    <div><input type="text" name="10" class="border-2 border-gray-400" disabled/></div>
+
+    <div><input type="text" name="11" class="border-2 border-gray-400" disabled/></div>
+    <div><input type="text" name="12" class="border-2 border-gray-400" disabled/></div>
+    <div><input type="text" name="13" class="border-2 border-gray-400" disabled/></div>
+    <div><input type="text" name="14" class="border-2 border-gray-400" disabled/></div>
+    <div><input type="text" name="15" class="border-2 border-gray-400" disabled/></div>
+
+    <div><input type="text" name="16" class="border-2 border-gray-400" disabled/></div>
+    <div><input type="text" name="17" class="border-2 border-gray-400" disabled/></div>
+    <div><input type="text" name="18" class="border-2 border-gray-400" disabled/></div>
+    <div><input type="text" name="19" class="border-2 border-gray-400" disabled/></div>
+    <div><input type="text" name="20" class="border-2 border-gray-400" disabled/></div>
+
+    <div><input type="text" name="21" class="border-2 border-gray-400" disabled/></div>
+    <div><input type="text" name="22" class="border-2 border-gray-400" disabled/></div>
+    <div><input type="text" name="23" class="border-2 border-gray-400" disabled/></div>
+    <div><input type="text" name="24" class="border-2 border-gray-400" disabled/></div>
+    <div><input type="text" name="25" class="border-2 border-gray-400" disabled/></div>
+
+
+    <div><input type="text" name="26" class="border-2 border-gray-400" disabled/></div>
+    <div><input type="text" name="27" class="border-2 border-gray-400" disabled/></div>
+    <div><input type="text" name="28" class="border-2 border-gray-400" disabled/></div>
+    <div><input type="text" name="29" class="border-2 border-gray-400" disabled/></div>
+    <div><input type="text" name="30" class="border-2 border-gray-400" disabled/></div>
+  </div>
+<input type="submit" hidden />
+</form>
+
 
 </body>
 </html>
