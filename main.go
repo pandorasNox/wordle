@@ -79,12 +79,20 @@ func main() {
 	http.HandleFunc("/wordle", func(w http.ResponseWriter, r *http.Request) {
 		s := handleSession(w, r, &sessions)
 
-		b, err := io.ReadAll(r.Body)
-		if err != nil {
-			log.Fatalln(err)
-		}
+		// b, err := io.ReadAll(r.Body)
+		// if err != nil {
+		// 	// log.Fatalln(err)
+		// 	log.Printf("error: %s", err)
+		// }
+		// log.Printf("word: %s\nbody:\n%s", s.activeWord, b)
 
-		log.Printf("word: %s\nbody:\n%s", s.activeWord, b)
+		err := r.ParseForm()
+		if err != nil {
+			// log.Fatalln(err)
+			log.Printf("error: %s", err)
+		}
+		log.Printf("word: %s\nform['1']['0']:\"%s\"\n", s.activeWord, r.PostFormValue("1"))
+		log.Printf("word: %s\nform[][]:\"%v\"\n", s.activeWord, r.PostForm)
 
 		// io.WriteString(w, fmt.Sprintf("Hello, world!\n%s", sessions))
 		//io.WriteString(w, fmt.Sprintf("Hello, world! %s\n", session.id))
