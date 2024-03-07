@@ -33,6 +33,7 @@ Options:
 # -----------------------------------------------------------------------------
 
 func_watch() {
+   # https://github.com/cosmtrek/air?tab=readme-ov-file
   docker run -it --rm \
     -w "/workdir" -v "${PWD}":"/workdir" \
     -p "${APP_PORT}":"${APP_PORT}" \
