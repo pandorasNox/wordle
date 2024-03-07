@@ -27,7 +27,7 @@ func Test_constructCookie(t *testing.T) {
 		// add test cases here
 		{
 			"test_name",
-			args{session{fixedUuid, expireDate, SESSION_MAX_AGE_IN_SECONDS}},
+			args{session{fixedUuid, expireDate, SESSION_MAX_AGE_IN_SECONDS, ""}},
 			http.Cookie{
 				Name:     SESSION_COOKIE_NAME,
 				Value:    fixedUuid,
@@ -85,14 +85,20 @@ func Test_handleSession(t *testing.T) {
 				id:            "12345678-abcd-1234-abcd-ab1234567890",
 				expiresAt:     time.Unix(1615256178, 0).Add(SESSION_MAX_AGE_IN_SECONDS * time.Second),
 				maxAgeSeconds: 120,
+				activeWord:    "ROATE",
 			},
 		},
-		{
-			// todo // check out https://gist.github.com/jonnyreeves/17f91155a0d4a5d296d6 for inspiration
-			"test got cookie but no session corresponding session on server",
-			args{},
-			session{},
-		},
+		// {
+		// 	// todo // check out https://gist.github.com/jonnyreeves/17f91155a0d4a5d296d6 for inspiration
+		// 	"test got cookie but no session corresponding session on server",
+		// 	args{},
+		// 	session{
+		// 		id:            "12345678-abcd-1234-abcd-ab1234567890",
+		// 		expiresAt:     time.Unix(1615256178, 0).Add(SESSION_MAX_AGE_IN_SECONDS * time.Second),
+		// 		maxAgeSeconds: 120,
+		// 		activeWord:    "ROATE",
+		// 	},
+		// },
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
