@@ -54,7 +54,7 @@ else
 
     if [ $1 == "watch" ]
     then
-      func_watch
+      func_watch  --build.cmd "go build -buildvcs=false -o ./tmp/main" --build.bin "./tmp/main"
     #   func_watch -c "--build.exclude_dir 'bin'" 
     fi
 fi
