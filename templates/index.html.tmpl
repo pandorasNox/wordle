@@ -35,47 +35,7 @@
       </div>
     </div>
   </div>
-
-  <form name="wordle" hx-post="/wordle">
-    <div class="grid grid-cols-5 gap-4">
-      <div><input @keyup="$focus.next()" type="text" name="1" class="border-2 border-gray-400" /></div>
-      <div><input type="text" name="2" class="border-2 border-gray-400" /></div>
-      <div><input type="text" name="3" class="border-2 border-gray-400" /></div>
-      <div><input type="text" name="4" class="border-2 border-gray-400" /></div>
-      <div><input type="text" name="5" class="border-2 border-gray-400" /></div>
-
-      <div><input type="text" name="6" class="border-2 border-gray-400" disabled/></div>
-      <div><input type="text" name="7" class="border-2 border-gray-400" disabled/></div>
-      <div><input type="text" name="8" class="border-2 border-gray-400" disabled/></div>
-      <div><input type="text" name="9" class="border-2 border-gray-400" disabled/></div>
-      <div><input type="text" name="10" class="border-2 border-gray-400" disabled/></div>
-
-      <div><input type="text" name="11" class="border-2 border-gray-400" disabled/></div>
-      <div><input type="text" name="12" class="border-2 border-gray-400" disabled/></div>
-      <div><input type="text" name="13" class="border-2 border-gray-400" disabled/></div>
-      <div><input type="text" name="14" class="border-2 border-gray-400" disabled/></div>
-      <div><input type="text" name="15" class="border-2 border-gray-400" disabled/></div>
-
-      <div><input type="text" name="16" class="border-2 border-gray-400" disabled/></div>
-      <div><input type="text" name="17" class="border-2 border-gray-400" disabled/></div>
-      <div><input type="text" name="18" class="border-2 border-gray-400" disabled/></div>
-      <div><input type="text" name="19" class="border-2 border-gray-400" disabled/></div>
-      <div><input type="text" name="20" class="border-2 border-gray-400" disabled/></div>
-
-      <div><input type="text" name="21" class="border-2 border-gray-400" disabled/></div>
-      <div><input type="text" name="22" class="border-2 border-gray-400" disabled/></div>
-      <div><input type="text" name="23" class="border-2 border-gray-400" disabled/></div>
-      <div><input type="text" name="24" class="border-2 border-gray-400" disabled/></div>
-      <div><input type="text" name="25" class="border-2 border-gray-400" disabled/></div>
-
-
-      <div><input type="text" name="26" class="border-2 border-gray-400" disabled/></div>
-      <div><input type="text" name="27" class="border-2 border-gray-400" disabled/></div>
-      <div><input type="text" name="28" class="border-2 border-gray-400" disabled/></div>
-      <div><input type="text" name="29" class="border-2 border-gray-400" disabled/></div>
-      <div><input type="text" name="30" class="border-2 border-gray-400" disabled/></div>
-    </div>
-    <input type="submit" hidden />
-  </form>
+  
+  {{template "wordle-form"}}
 </body>
 </html>

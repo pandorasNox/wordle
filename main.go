@@ -63,7 +63,7 @@ func main() {
 	log.Println("staring server...")
 	log.Printf("env conf:\n%s", envCfg)
 
-	t := template.Must(template.ParseFS(fs, "templates/index.html.tmpl"))
+	t := template.Must(template.ParseFS(fs, "templates/index.html.tmpl", "templates/wordle-form.html.tmpl"))
 
 	http.HandleFunc("/", func(w http.ResponseWriter, req *http.Request) {
 		handleSession(w, req, &sessions)
@@ -98,8 +98,7 @@ func main() {
 		//io.WriteString(w, fmt.Sprintf("Hello, world! %s\n", session.id))
 		log.Printf("sessions:\n%s", sessions)
 
-		t.Execute(w, nil)
-
+		t.ExecuteTemplate(w, "wordle-form", nil)
 	})
 
 	counter := counterState{count: 0}
