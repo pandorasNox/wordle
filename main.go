@@ -13,9 +13,13 @@ import (
 	"os"
 	"slices"
 	"time"
+	"unicode/utf8"
 
 	"github.com/google/uuid"
 )
+
+const SESSION_COOKIE_NAME = "session"
+const SESSION_MAX_AGE_IN_SECONDS = 120
 
 //go:embed templates/*.html.tmpl
 var fs embed.FS
@@ -34,7 +38,18 @@ type session struct {
 	id            string
 	expiresAt     time.Time
 	maxAgeSeconds int
-	activeWord    string
+	activeWord    wordleWord
+}
+
+type wordleWord [5]rune
+
+func (w wordleWord) String() string {
+	out := ""
+	for _, v := range w {
+		out += string(v)
+	}
+
+	return out
 }
 
 type sessions []session
@@ -48,12 +63,23 @@ func (ss sessions) String() string {
 	return out
 }
 
-const SESSION_COOKIE_NAME = "session"
-const SESSION_MAX_AGE_IN_SECONDS = 120
-
 type counterState struct {
 	mu    sync.Mutex
 	count int
+}
+
+type wordle struct {
+	guesses [6][5]wordleLetter
+}
+
+type wordleLetter struct {
+	letter rune
+	hitOrMiss letterHitOrMiss
+}
+
+type letterHitOrMiss struct {
+	some bool
+	exact bool
 }
 
 func main() {
@@ -73,7 +99,6 @@ func main() {
 		log.Printf("sessions:\n%s", sessions)
 
 		t.Execute(w, nil)
-
 	})
 
 	http.HandleFunc("/wordle", func(w http.ResponseWriter, r *http.Request) {
@@ -91,6 +116,19 @@ func main() {
 			// log.Fatalln(err)
 			log.Printf("error: %s", err)
 		}
+
+		wo := wordle{}
+		for ri, rows := range wo.guesses {
+			for ci, _ := range rows {
+				fl := r.PostFormValue(fmt.Sprintf("r%dc%d", ri, ci))
+				log.Printf("form['%d']['%d']:\"%s\"\n", ci, ri, fl)
+				
+
+				r, _ := utf8.DecodeRuneInString(fl)
+				wo.guesses[ri][ci] = wordleLetter{r, letterHitOrMiss{false, false}}
+			}
+		}
+
 		log.Printf("word: %s\nform['1']['0']:\"%s\"\n", s.activeWord, r.PostFormValue("1"))
 		log.Printf("word: %s\nform[][]:\"%v\"\n", s.activeWord, r.PostForm)
 
@@ -187,6 +225,7 @@ func constructCookie(s session) http.Cookie {
 func generateSession() session { //todo: pass it by ref not by copy?
 	id := uuid.NewString()
 	expiresAt := time.Now().Add(SESSION_MAX_AGE_IN_SECONDS * time.Second) // todo: 24 hour, sec now only for testing
-	activeWord := "ROATE"
+	//activeWord := "ROATE"
+	activeWord := wordleWord{'R','O','A','T','E'}
 	return session{id, expiresAt, SESSION_MAX_AGE_IN_SECONDS, activeWord}
 }

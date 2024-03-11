@@ -27,7 +27,7 @@ func Test_constructCookie(t *testing.T) {
 		// add test cases here
 		{
 			"test_name",
-			args{session{fixedUuid, expireDate, SESSION_MAX_AGE_IN_SECONDS, ""}},
+			args{session{fixedUuid, expireDate, SESSION_MAX_AGE_IN_SECONDS, wordleWord{}}},
 			http.Cookie{
 				Name:     SESSION_COOKIE_NAME,
 				Value:    fixedUuid,
@@ -85,7 +85,7 @@ func Test_handleSession(t *testing.T) {
 				id:            "12345678-abcd-1234-abcd-ab1234567890",
 				expiresAt:     time.Unix(1615256178, 0).Add(SESSION_MAX_AGE_IN_SECONDS * time.Second),
 				maxAgeSeconds: 120,
-				activeWord:    "ROATE",
+				activeWord:    wordleWord{'R','O','A','T','E'},
 			},
 		},
 		// {
@@ -96,7 +96,7 @@ func Test_handleSession(t *testing.T) {
 		// 		id:            "12345678-abcd-1234-abcd-ab1234567890",
 		// 		expiresAt:     time.Unix(1615256178, 0).Add(SESSION_MAX_AGE_IN_SECONDS * time.Second),
 		// 		maxAgeSeconds: 120,
-		// 		activeWord:    "ROATE",
+		// 		activeWord:    wordleWord{'R','O','A','T','E'},
 		// 	},
 		// },
 	}
