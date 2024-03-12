@@ -22,3 +22,6 @@ go.work
 
 # golang "air" watch tool
 tmp
+
+# golang local docker mount cache dir
+tmp/local_go_dev_dir

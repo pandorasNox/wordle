@@ -28,6 +28,8 @@ Usage: $(basename $0) [OPTIONS]
 Options:
   --help|-h         show help
   watch             start go server & reload server upon file chnages
+  test              start go docker container + run go tests
+  down              stop + delete all started local docker container
 "
 
 # -----------------------------------------------------------------------------
@@ -39,6 +41,23 @@ func_watch() {
     -p "${APP_PORT}":"${APP_PORT}" \
     -e PORT="${APP_PORT}" \
     docker.io/cosmtrek/air "$@"
+}
+
+func_test() {
+  if ! (docker ps --format "{{.Names}}" | grep "wordle_test_con"); then
+    docker run -d --rm \
+      --name wordle_test_con \
+      -w "/workdir" -v "${PWD}":"/workdir" \
+      -v "${PWD}/tmp/local_go_dev_dir":"/go" \
+      --entrypoint=bash \
+      docker.io/cosmtrek/air -c "while true; do sleep 2000000; done"
+  fi
+
+  docker exec -t wordle_test_con bash -c "$@"
+}
+
+func_down() {
+  docker stop -t1 wordle_test_con
 }
 
 # -----------------------------------------------------------------------------
@@ -56,5 +75,15 @@ else
     then
       func_watch  --build.cmd "go build -buildvcs=false -o ./tmp/main" --build.bin "./tmp/main"
     #   func_watch -c "--build.exclude_dir 'bin'" 
+    fi
+
+    if [ $1 == "test" ]
+    then
+      func_test "go test ."
+    fi
+
+    if [ $1 == "down" ]
+    then
+      func_down
     fi
 fi
