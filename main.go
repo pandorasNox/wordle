@@ -81,17 +81,18 @@ type counterState struct {
 }
 
 type wordle struct {
-	guesses [6][5]wordleLetter
+	Bla     string
+	Guesses [6][5]wordleLetter
 }
 
 type wordleLetter struct {
-	letter    rune
-	hitOrMiss letterHitOrMiss
+	Letter    rune
+	HitOrMiss letterHitOrMiss
 }
 
 type letterHitOrMiss struct {
-	some  bool
-	exact bool
+	Some  bool
+	Exact bool
 }
 
 func main() {
@@ -129,14 +130,14 @@ func main() {
 			log.Printf("error: %s", err)
 		}
 
-		wo := wordle{}
-		for ri, rows := range wo.guesses {
+		wo := wordle{Bla: "test"}
+		for ri, rows := range wo.Guesses {
 			for ci := range rows {
 				fl := r.PostFormValue(fmt.Sprintf("r%dc%d", ri, ci))
 				log.Printf("form['%d']['%d']:\"%s\"\n", ci, ri, fl)
 
 				r, _ := utf8.DecodeRuneInString(fl)
-				wo.guesses[ri][ci] = wordleLetter{r, letterHitOrMiss{s.activeWord.contains(r), s.activeWord[ci] == r}}
+				wo.Guesses[ri][ci] = wordleLetter{r, letterHitOrMiss{s.activeWord.contains(r), s.activeWord[ci] == r}}
 			}
 		}
 
@@ -148,7 +149,7 @@ func main() {
 		log.Printf("sessions:\n%s", sessions)
 		log.Println(wo)
 
-		t.ExecuteTemplate(w, "wordle-form", nil)
+		t.ExecuteTemplate(w, "wordle-form", wo)
 	})
 
 	counter := counterState{count: 0}

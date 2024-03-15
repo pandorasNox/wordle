@@ -1,8 +1,9 @@
 
 {{define "wordle-form"}}
 <form name="wordle" hx-post="/wordle">
+    <h1>{{ .Bla }}</h1>
     <div class="grid grid-cols-5 gap-4">
-      <div><input type="text" name="r0c0" class="border-2 border-gray-400" /></div>
+      <div><input type="text" name="r0c0" class="border-2 border-gray-400 {{if not . }}{{ else if (index .Guesses 0 0).HitOrMiss.Exact }}bg-green-400{{ else if (index .Guesses 0 0).HitOrMiss.Some }}bg-yellow-200{{ end }}" / value="{{ if . }}{{ printf "%c" (index .Guesses 0 0).Letter }}{{ end }}"></div>
       <div><input type="text" name="r0c1" class="border-2 border-gray-400" /></div>
       <div><input type="text" name="r0c2" class="border-2 border-gray-400" /></div>
       <div><input type="text" name="r0c3" class="border-2 border-gray-400" /></div>
