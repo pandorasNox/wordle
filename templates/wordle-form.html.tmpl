@@ -1,44 +1,25 @@
 
-{{define "wordle-form"}}
+{{ define "wordle-form" }}
+{{/* comment */}}
 <form name="wordle" hx-post="/wordle">
     <h1>{{ .Bla }}</h1>
     <div class="grid grid-cols-5 gap-4">
-      <div><input type="text" name="r0c0" class="border-2 border-gray-400 {{if not . }}{{ else if (index .Guesses 0 0).HitOrMiss.Exact }}bg-green-400{{ else if (index .Guesses 0 0).HitOrMiss.Some }}bg-yellow-200{{ end }}" / value="{{ if . }}{{ printf "%c" (index .Guesses 0 0).Letter }}{{ end }}"></div>
-      <div><input type="text" name="r0c1" class="border-2 border-gray-400" /></div>
-      <div><input type="text" name="r0c2" class="border-2 border-gray-400" /></div>
-      <div><input type="text" name="r0c3" class="border-2 border-gray-400" /></div>
-      <div><input type="text" name="r0c4" class="border-2 border-gray-400" /></div>
-
-      <div><input type="text" name="r1c0" class="border-2 border-gray-400" /></div>
-      <div><input type="text" name="r1c1" class="border-2 border-gray-400" /></div>
-      <div><input type="text" name="r1c2" class="border-2 border-gray-400" /></div>
-      <div><input type="text" name="r1c3" class="border-2 border-gray-400" /></div>
-      <div><input type="text" name="r1c4" class="border-2 border-gray-400" /></div>
-
-      <div><input type="text" name="r2c0" class="border-2 border-gray-400" /></div>
-      <div><input type="text" name="r2c1" class="border-2 border-gray-400" /></div>
-      <div><input type="text" name="r2c2" class="border-2 border-gray-400" /></div>
-      <div><input type="text" name="r2c3" class="border-2 border-gray-400" /></div>
-      <div><input type="text" name="r2c4" class="border-2 border-gray-400" /></div>
-
-      <div><input type="text" name="r3c0" class="border-2 border-gray-400" /></div>
-      <div><input type="text" name="r3c1" class="border-2 border-gray-400" /></div>
-      <div><input type="text" name="r3c2" class="border-2 border-gray-400" /></div>
-      <div><input type="text" name="r3c3" class="border-2 border-gray-400" /></div>
-      <div><input type="text" name="r3c4" class="border-2 border-gray-400" /></div>
-
-      <div><input type="text" name="r4c0" class="border-2 border-gray-400" /></div>
-      <div><input type="text" name="r4c1" class="border-2 border-gray-400" /></div>
-      <div><input type="text" name="r4c2" class="border-2 border-gray-400" /></div>
-      <div><input type="text" name="r4c3" class="border-2 border-gray-400" /></div>
-      <div><input type="text" name="r4c4" class="border-2 border-gray-400" /></div>
-
-      <div><input type="text" name="r5c0" class="border-2 border-gray-400" /></div>
-      <div><input type="text" name="r5c1" class="border-2 border-gray-400" /></div>
-      <div><input type="text" name="r5c2" class="border-2 border-gray-400" /></div>
-      <div><input type="text" name="r5c3" class="border-2 border-gray-400" /></div>
-      <div><input type="text" name="r5c4" class="border-2 border-gray-400" /></div>
+      {{ if . }}
+        {{ range $ri, $rowGuess := .Guesses }}
+          {{ range $li, $letterGuess := $rowGuess }}
+            <div>
+              <input
+                type="text"
+                name="r{{ $ri }}c{{ $li }}"
+                class="border-2 border-gray-400 {{ if $letterGuess.HitOrMiss.Exact }}bg-green-400{{ else if $letterGuess.HitOrMiss.Some }}bg-yellow-200{{ end }}"
+                value="{{ printf "%c" $letterGuess.Letter }}"
+              />
+            </div>
+          {{ end }}
+        {{ end }}
+      {{ end }}
     </div>
+
     <input type="submit" hidden />
   </form>
-{{end}}
+{{ end }}

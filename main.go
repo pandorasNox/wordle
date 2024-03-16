@@ -111,7 +111,10 @@ func main() {
 		//io.WriteString(w, fmt.Sprintf("Hello, world! %s\n", session.id))
 		log.Printf("sessions:\n%s", sessions)
 
-		t.Execute(w, nil)
+		err := t.Execute(w, wordle{Bla: "test"})
+		if err != nil {
+			log.Printf("error t.Execute '/' route: %s", err)
+		}
 	})
 
 	http.HandleFunc("/wordle", func(w http.ResponseWriter, r *http.Request) {
@@ -149,7 +152,10 @@ func main() {
 		log.Printf("sessions:\n%s", sessions)
 		log.Println(wo)
 
-		t.ExecuteTemplate(w, "wordle-form", wo)
+		err = t.ExecuteTemplate(w, "wordle-form", wo)
+		if err != nil {
+			log.Printf("error t.ExecuteTemplate '/wordle' route: %s", err)
+		}
 	})
 
 	counter := counterState{count: 0}
