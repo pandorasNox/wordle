@@ -247,12 +247,12 @@ func parseForm(wo wordle, form url.Values, w wordleWord) wordle {
 		for ci := range rows {
 			fl, ok := form[fmt.Sprintf("r%dc%d", ri, ci)]
 			if !ok {
-				fmt.Println("continue map")
+				//fmt.Println("continue map")
 				continue
 			}
 
 			//fl := form(fmt.Sprintf("r%dc%d", ri, ci))
-			log.Printf("form['%d']['%d']:\"%s\"\n", ci, ri, fl)
+			//log.Printf("form['%d']['%d']:\"%s\"\n", ci, ri, fl)
 
 			r, _ := utf8.DecodeRuneInString(fl[0])
 			wo.Guesses[ri][ci] = wordleLetter{r, letterHitOrMiss{w.contains(r), w[ci] == r}}

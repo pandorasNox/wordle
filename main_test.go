@@ -3,6 +3,7 @@ package main
 import (
 	"net/http"
 	"net/http/httptest"
+	"net/url"
 	"reflect"
 	"strings"
 	"testing"
@@ -85,7 +86,7 @@ func Test_handleSession(t *testing.T) {
 				id:            "12345678-abcd-1234-abcd-ab1234567890",
 				expiresAt:     time.Unix(1615256178, 0).Add(SESSION_MAX_AGE_IN_SECONDS * time.Second),
 				maxAgeSeconds: 120,
-				activeWord:    wordleWord{'R','O','A','T','E'},
+				activeWord:    wordleWord{'R', 'O', 'A', 'T', 'E'},
 			},
 		},
 		// {
@@ -116,4 +117,48 @@ func Test_handleSession(t *testing.T) {
 	// 	// t.Errorf("fail %v", session{})
 	// 	t.Errorf("fail %v", handleSession(httptest.NewRecorder(), httptest.NewRequest("get", "/", strings.NewReader("Hello, Reader!")), &sessions{}))
 	// })
+}
+
+func Test_parseForm(t *testing.T) {
+	type args struct {
+		wo   wordle
+		form url.Values
+		w    wordleWord
+	}
+	tests := []struct {
+		name string
+		args args
+		want wordle
+	}{
+		// TODO: Add test cases.
+		{
+			name: "no hits, neither same or exact",
+			args: args{wordle{}, url.Values{}, wordleWord{'M', 'I', 'S', 'S', 'S'}},
+			want: wordle{},
+		},
+		{
+			name: "full exact match",
+			args: args{
+				wordle{},
+				url.Values{"r0c0": []string{"M"}, "r0c1": []string{"A"}, "r0c2": []string{"T"}, "r0c3": []string{"C"}, "r0c4": []string{"H"}},
+				wordleWord{'M', 'A', 'T', 'C', 'H'},
+			},
+			want: wordle{"", [6][5]wordleLetter{
+				{
+					{'M', letterHitOrMiss{true, true}},
+					{'A', letterHitOrMiss{true, true}},
+					{'T', letterHitOrMiss{true, true}},
+					{'C', letterHitOrMiss{true, true}},
+					{'H', letterHitOrMiss{true, true}},
+				},
+			}},
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			if got := parseForm(tt.args.wo, tt.args.form, tt.args.w); !reflect.DeepEqual(got, tt.want) {
+				t.Errorf("parseForm() = %v, want %v", got, tt.want)
+			}
+		})
+	}
 }
