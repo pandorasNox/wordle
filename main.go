@@ -10,6 +10,7 @@ import (
 	//"io"
 	"log"
 	"net/http"
+	"net/url"
 	"os"
 	"slices"
 	"time"
@@ -134,23 +135,15 @@ func main() {
 		}
 
 		wo := wordle{Bla: "test"}
-		for ri, rows := range wo.Guesses {
-			for ci := range rows {
-				fl := r.PostFormValue(fmt.Sprintf("r%dc%d", ri, ci))
-				log.Printf("form['%d']['%d']:\"%s\"\n", ci, ri, fl)
+		wo = parseForm(wo, r.PostForm, s.activeWord)
 
-				r, _ := utf8.DecodeRuneInString(fl)
-				wo.Guesses[ri][ci] = wordleLetter{r, letterHitOrMiss{s.activeWord.contains(r), s.activeWord[ci] == r}}
-			}
-		}
-
-		log.Printf("word: %s\nform['1']['0']:\"%s\"\n", s.activeWord, r.PostFormValue("1"))
-		log.Printf("word: %s\nform[][]:\"%v\"\n", s.activeWord, r.PostForm)
+		//log.Printf("word: %s\nform['1']['0']:\"%s\"\n", s.activeWord, r.PostFormValue("1"))
+		//log.Printf("word: %s\nform[][]:\"%v\"\n", s.activeWord, r.PostForm)
 
 		// io.WriteString(w, fmt.Sprintf("Hello, world!\n%s", sessions))
 		//io.WriteString(w, fmt.Sprintf("Hello, world! %s\n", session.id))
-		log.Printf("sessions:\n%s", sessions)
-		log.Println(wo)
+		//log.Printf("sessions:\n%s", sessions)
+		//log.Println(wo)
 
 		err = t.ExecuteTemplate(w, "wordle-form", wo)
 		if err != nil {
@@ -247,4 +240,24 @@ func generateSession() session { //todo: pass it by ref not by copy?
 	//activeWord := "ROATE"
 	activeWord := wordleWord{'R', 'O', 'A', 'T', 'E'}
 	return session{id, expiresAt, SESSION_MAX_AGE_IN_SECONDS, activeWord}
+}
+
+func parseForm(wo wordle, form url.Values, w wordleWord) wordle {
+	for ri, rows := range wo.Guesses {
+		for ci := range rows {
+			fl, ok := form[fmt.Sprintf("r%dc%d", ri, ci)]
+			if !ok {
+				fmt.Println("continue map")
+				continue
+			}
+
+			//fl := form(fmt.Sprintf("r%dc%d", ri, ci))
+			log.Printf("form['%d']['%d']:\"%s\"\n", ci, ri, fl)
+
+			r, _ := utf8.DecodeRuneInString(fl[0])
+			wo.Guesses[ri][ci] = wordleLetter{r, letterHitOrMiss{w.contains(r), w[ci] == r}}
+		}
+	}
+
+	return wo
 }
