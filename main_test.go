@@ -83,10 +83,10 @@ func Test_handleSession(t *testing.T) {
 				&sessions{},
 			},
 			session{
-				id:            "12345678-abcd-1234-abcd-ab1234567890",
-				expiresAt:     time.Unix(1615256178, 0).Add(SESSION_MAX_AGE_IN_SECONDS * time.Second),
-				maxAgeSeconds: 120,
-				activeWord:    wordleWord{'R', 'O', 'A', 'T', 'E'},
+				id:                 "12345678-abcd-1234-abcd-ab1234567890",
+				expiresAt:          time.Unix(1615256178, 0).Add(SESSION_MAX_AGE_IN_SECONDS * time.Second),
+				maxAgeSeconds:      120,
+				activeSolutionWord: wordleWord{'R', 'O', 'A', 'T', 'E'},
 			},
 		},
 		// {
@@ -121,9 +121,9 @@ func Test_handleSession(t *testing.T) {
 
 func Test_parseForm(t *testing.T) {
 	type args struct {
-		wo   wordle
-		form url.Values
-		w    wordleWord
+		wo           wordle
+		form         url.Values
+		solutionWord wordleWord
 	}
 	tests := []struct {
 		name string
@@ -133,17 +133,18 @@ func Test_parseForm(t *testing.T) {
 		// TODO: Add test cases.
 		{
 			name: "no hits, neither same or exact",
-			args: args{wordle{}, url.Values{}, wordleWord{'M', 'I', 'S', 'S', 'S'}},
+			// args: args{wordle{}, url.Values{}, wordleWord{'M', 'I', 'S', 'S', 'S'}},
+			args: args{wordle{}, url.Values{"r0": []string{}}, wordleWord{'M', 'I', 'S', 'S', 'S'}},
 			want: wordle{},
 		},
 		{
 			name: "full exact match",
 			args: args{
 				wordle{},
-				url.Values{"r0c0": []string{"M"}, "r0c1": []string{"A"}, "r0c2": []string{"T"}, "r0c3": []string{"C"}, "r0c4": []string{"H"}},
+				url.Values{"r0": []string{"M", "A", "T", "C", "H"}},
 				wordleWord{'M', 'A', 'T', 'C', 'H'},
 			},
-			want: wordle{"", [6][5]wordleLetter{
+			want: wordle{"", [6]wordGuess{
 				{
 					{'M', letterHitOrMiss{true, true}},
 					{'A', letterHitOrMiss{true, true}},
@@ -156,8 +157,79 @@ func Test_parseForm(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			if got := parseForm(tt.args.wo, tt.args.form, tt.args.w); !reflect.DeepEqual(got, tt.want) {
+			if got := parseForm(tt.args.wo, tt.args.form, tt.args.solutionWord); !reflect.DeepEqual(got, tt.want) {
 				t.Errorf("parseForm() = %v, want %v", got, tt.want)
+			}
+		})
+	}
+}
+
+func Test_evaluateGuessedWord(t *testing.T) {
+	type args struct {
+		guessedWord  []string
+		solutionWord wordleWord
+	}
+	tests := []struct {
+		name string
+		args args
+		want wordGuess
+	}{
+		// test cases
+		{
+			name: "no hits, neither same or exact",
+			args: args{[]string{}, wordleWord{'M', 'I', 'S', 'S', 'S'}},
+			want: wordGuess{},
+		},
+		{
+			name: "full exact match",
+			args: args{
+				[]string{"M", "A", "T", "C", "H"},
+				wordleWord{'M', 'A', 'T', 'C', 'H'},
+			},
+			want: wordGuess{
+				{'M', letterHitOrMiss{true, true}},
+				{'A', letterHitOrMiss{true, true}},
+				{'T', letterHitOrMiss{true, true}},
+				{'C', letterHitOrMiss{true, true}},
+				{'H', letterHitOrMiss{true, true}},
+			},
+		},
+		{
+			name: "guessed word contains duplicats",
+			args: args{
+				[]string{"R", "O", "T", "O", "R"},
+				wordleWord{'R', 'O', 'A', 'T', 'E'},
+			},
+			want: wordGuess{
+				{'R', letterHitOrMiss{Some: true, Exact: true}},
+				{'O', letterHitOrMiss{Some: true, Exact: true}},
+				{'T', letterHitOrMiss{Some: true, Exact: false}},
+				{'O', letterHitOrMiss{Some: false, Exact: false}}, // both false bec we already found it or even already guesst the exact match
+				{'R', letterHitOrMiss{Some: false, Exact: false}}, // both false bec we already found it or even already guesst the exact match
+			},
+		},
+		// {
+		// 	name: "target word contains duplicats / guessed word contains duplicats",
+		// 	args: args{
+		// 		wordle{},
+		// 		url.Values{"r0c0": []string{"M"}, "r0c1": []string{"A"}, "r0c2": []string{"T"}, "r0c3": []string{"C"}, "r0c4": []string{"H"}},
+		// 		wordleWord{'M', 'A', 'T', 'C', 'H'},
+		// 	},
+		// 	want: wordle{"", [6][5]wordleLetter{
+		// 		{
+		// 			{'R', letterHitOrMiss{true, true}},
+		// 			{'O', letterHitOrMiss{true, true}},
+		// 			{'T', letterHitOrMiss{true, true}},
+		// 			{'O', letterHitOrMiss{true, true}},
+		// 			{'R', letterHitOrMiss{true, true}},
+		// 		},
+		// 	}},
+		// },
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			if got := evaluateGuessedWord(tt.args.guessedWord, tt.args.solutionWord); !reflect.DeepEqual(got, tt.want) {
+				t.Errorf("evaluateGuessedWord() = %v, want %v", got, tt.want)
 			}
 		})
 	}

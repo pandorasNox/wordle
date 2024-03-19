@@ -36,10 +36,10 @@ func (e env) String() string {
 }
 
 type session struct {
-	id            string
-	expiresAt     time.Time
-	maxAgeSeconds int
-	activeWord    wordleWord
+	id                 string
+	expiresAt          time.Time
+	maxAgeSeconds      int
+	activeSolutionWord wordleWord
 }
 
 type wordleWord [5]rune
@@ -65,6 +65,17 @@ func (w wordleWord) contains(letter rune) bool {
 	return found
 }
 
+func (w wordleWord) count(letter rune) int {
+	count := 0
+	for _, v := range w {
+		if v == letter {
+			count++
+		}
+	}
+
+	return count
+}
+
 type sessions []session
 
 func (ss sessions) String() string {
@@ -83,10 +94,10 @@ type counterState struct {
 
 type wordle struct {
 	Bla     string
-	Guesses [6][5]wordleLetter
+	Guesses [6]wordGuess
 }
 
-type wordleLetter struct {
+type letterGuess struct {
 	Letter    rune
 	HitOrMiss letterHitOrMiss
 }
@@ -95,6 +106,8 @@ type letterHitOrMiss struct {
 	Some  bool
 	Exact bool
 }
+
+type wordGuess [5]letterGuess
 
 func main() {
 	envCfg := envConfig()
@@ -120,6 +133,7 @@ func main() {
 
 	http.HandleFunc("/wordle", func(w http.ResponseWriter, r *http.Request) {
 		s := handleSession(w, r, &sessions)
+		_ = s
 
 		// b, err := io.ReadAll(r.Body)
 		// if err != nil {
@@ -135,7 +149,7 @@ func main() {
 		}
 
 		wo := wordle{Bla: "test"}
-		wo = parseForm(wo, r.PostForm, s.activeWord)
+		// wo = parseForm(wo, r.PostForm, s.activeSolutionWord)
 
 		//log.Printf("word: %s\nform['1']['0']:\"%s\"\n", s.activeWord, r.PostFormValue("1"))
 		//log.Printf("word: %s\nform[][]:\"%v\"\n", s.activeWord, r.PostForm)
@@ -242,22 +256,49 @@ func generateSession() session { //todo: pass it by ref not by copy?
 	return session{id, expiresAt, SESSION_MAX_AGE_IN_SECONDS, activeWord}
 }
 
-func parseForm(wo wordle, form url.Values, w wordleWord) wordle {
-	for ri, rows := range wo.Guesses {
-		for ci := range rows {
-			fl, ok := form[fmt.Sprintf("r%dc%d", ri, ci)]
-			if !ok {
-				//fmt.Println("continue map")
-				continue
-			}
+func parseForm(wo wordle, form url.Values, solutionWord wordleWord) wordle {
 
-			//fl := form(fmt.Sprintf("r%dc%d", ri, ci))
-			//log.Printf("form['%d']['%d']:\"%s\"\n", ci, ri, fl)
+	// log.Println("")
+	// log.Printf("parseForm() var solutionWord:'%v'\n", solutionWord)
+	// log.Println("")
 
-			r, _ := utf8.DecodeRuneInString(fl[0])
-			wo.Guesses[ri][ci] = wordleLetter{r, letterHitOrMiss{w.contains(r), w[ci] == r}}
+	for ri, _ := range wo.Guesses {
+		guessedWord, ok := form[fmt.Sprintf("r%d", ri)]
+		if !ok {
+			//fmt.Println("continue map")
+			continue
 		}
+
+		// log.Println("")
+		// log.Println("parseForm() var guessedWord:", guessedWord)
+		// log.Println("")
+
+		wg := evaluateGuessedWord(guessedWord, solutionWord)
+
+		wo.Guesses[ri] = wg
 	}
 
 	return wo
+}
+
+func evaluateGuessedWord(guessedWord []string, solutionWord wordleWord) wordGuess {
+	guessedLetterCountMap := make(map[rune]int)
+
+	resultWordGuess := wordGuess{}
+
+	for i := range guessedWord {
+		gr, _ := utf8.DecodeRuneInString(guessedWord[i])
+
+		some := solutionWord.contains(gr)
+		exact := solutionWord[i] == gr
+
+		if some {
+			guessedLetterCountMap[gr]++
+		}
+
+		s := (guessedLetterCountMap[gr] <= solutionWord.count(gr))
+		resultWordGuess[i] = letterGuess{gr, letterHitOrMiss{s, exact}}
+	}
+
+	return resultWordGuess
 }
