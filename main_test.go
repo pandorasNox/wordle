@@ -134,14 +134,14 @@ func Test_parseForm(t *testing.T) {
 		{
 			name: "no hits, neither same or exact",
 			// args: args{wordle{}, url.Values{}, wordleWord{'M', 'I', 'S', 'S', 'S'}},
-			args: args{wordle{}, url.Values{"r0": []string{}}, wordleWord{'M', 'I', 'S', 'S', 'S'}},
+			args: args{wordle{}, url.Values{"r0[]": []string{}}, wordleWord{'M', 'I', 'S', 'S', 'S'}},
 			want: wordle{},
 		},
 		{
 			name: "full exact match",
 			args: args{
 				wordle{},
-				url.Values{"r0": []string{"M", "A", "T", "C", "H"}},
+				url.Values{"r0[]": []string{"M", "A", "T", "C", "H"}},
 				wordleWord{'M', 'A', 'T', 'C', 'H'},
 			},
 			want: wordle{"", [6]wordGuess{
