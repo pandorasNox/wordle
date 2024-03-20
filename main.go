@@ -149,7 +149,7 @@ func main() {
 		}
 
 		wo := wordle{Bla: "test"}
-		// wo = parseForm(wo, r.PostForm, s.activeSolutionWord)
+		wo = parseForm(wo, r.PostForm, s.activeSolutionWord)
 
 		//log.Printf("word: %s\nform['1']['0']:\"%s\"\n", s.activeWord, r.PostFormValue("1"))
 		//log.Printf("word: %s\nform[][]:\"%v\"\n", s.activeWord, r.PostForm)
@@ -263,7 +263,7 @@ func parseForm(wo wordle, form url.Values, solutionWord wordleWord) wordle {
 	// log.Println("")
 
 	for ri, _ := range wo.Guesses {
-		guessedWord, ok := form[fmt.Sprintf("r%d", ri)]
+		guessedWord, ok := form[fmt.Sprintf("r%d[]", ri)]
 		if !ok {
 			//fmt.Println("continue map")
 			continue
