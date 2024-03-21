@@ -268,7 +268,7 @@ func parseForm(wo wordle, form url.Values, solutionWord wordleWord) wordle {
 		// log.Printf("parseForm() var form:%v\n", form)
 		// log.Println("")
 
-		guessedWord, ok := form[fmt.Sprintf("r%d[]", ri)]
+		guessedWord, ok := form[fmt.Sprintf("r%d", ri)]
 		if !ok {
 			// log.Println("")
 			// log.Printf("continue map: r%d\n", ri)
