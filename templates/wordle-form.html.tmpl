@@ -1,7 +1,8 @@
 
 {{ define "wordle-form" }}
 {{/* comment */}}
-<form name="wordle" hx-post="/wordle">
+<div class="flex content-center">
+<form name="wordle" hx-post="/wordle" class="m-auto">
     <h1>{{ .Bla }}</h1>
     <div class="grid grid-cols-5 gap-4">
       {{ if . }}
@@ -10,9 +11,11 @@
             <div>
               <input
                 type="text"
+                maxlength="1"
+                pattern="[A-Za-z]"
                 name="r{{ $ri }}"
-                class="border-2 border-gray-400 {{ if $letterGuess.HitOrMiss.Exact }}bg-green-400{{ else if $letterGuess.HitOrMiss.Some }}bg-yellow-200{{ end }}"
-                value="{{ printf "%c" $letterGuess.Letter }}"
+                class="border-2 rounded-md border-gray-400 {{ if $letterGuess.HitOrMiss.Exact }}bg-green-400{{ else if $letterGuess.HitOrMiss.Some }}bg-yellow-200{{ end }} w-16 h-16 text-center text-4xl text-gray-600"
+                value="{{ if ne $letterGuess.Letter '�' }}{{ printf "%c" $letterGuess.Letter }}{{ end }}"
               />
             </div>
           {{ end }}
@@ -21,5 +24,6 @@
     </div>
 
     <input type="submit" hidden />
-  </form>
+</form>
+</div>
 {{ end }}

@@ -263,7 +263,7 @@ func parseForm(wo wordle, form url.Values, solutionWord wordleWord) wordle {
 	// log.Printf("parseForm() var solutionWord:'%v'\n", solutionWord)
 	// log.Println("")
 
-	for ri, _ := range wo.Guesses {
+	for ri := range wo.Guesses {
 		// log.Println("")
 		// log.Printf("parseForm() var form:%v\n", form)
 		// log.Println("")
