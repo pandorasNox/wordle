@@ -15,8 +15,9 @@
                 pattern="[A-Za-z]"
                 name="r{{ $ri }}"
                 class="border-2 rounded-md border-gray-400 {{ if $letterGuess.HitOrMiss.Exact }}bg-green-400{{ else if $letterGuess.HitOrMiss.Some }}bg-yellow-200{{ end }} w-16 h-16 text-center text-4xl text-gray-600"
-                value="{{ if ne $letterGuess.Letter '�' }}{{ printf "%c" $letterGuess.Letter }}{{ end }}"
+                value="{{ if and (ne $letterGuess.Letter 0) (ne $letterGuess.Letter 65533) }}{{ printf "%c" $letterGuess.Letter }}{{ end }}"
               />
+              <!-- {{ if and (ne $letterGuess.Letter 0) (ne $letterGuess.Letter 65533) }}<span>{{ printf "%v" $letterGuess.Letter }}</span>{{ end }} -->
             </div>
           {{ end }}
         {{ end }}
