@@ -195,6 +195,20 @@ func Test_evaluateGuessedWord(t *testing.T) {
 			},
 		},
 		{
+			name: "partial exact and partial some match",
+			args: args{
+				[]string{"R", "A", "U", "L", "O"},
+				wordleWord{'R', 'O', 'A', 'T', 'E'},
+			},
+			want: wordGuess{
+				{'R', letterHitOrMiss{Some: true, Exact: true}},
+				{'A', letterHitOrMiss{Some: true, Exact: false}},
+				{'U', letterHitOrMiss{Some: false, Exact: false}},
+				{'L', letterHitOrMiss{Some: false, Exact: false}},
+				{'O', letterHitOrMiss{Some: true, Exact: false}},
+			},
+		},
+		{
 			name: "guessed word contains duplicats",
 			args: args{
 				[]string{"R", "O", "T", "O", "R"},

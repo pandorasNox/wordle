@@ -303,7 +303,7 @@ func evaluateGuessedWord(guessedWord []string, solutionWord wordleWord) wordGues
 			guessedLetterCountMap[gr]++
 		}
 
-		s := (guessedLetterCountMap[gr] <= solutionWord.count(gr))
+		s := some && (guessedLetterCountMap[gr] <= solutionWord.count(gr))
 		resultWordGuess[i] = letterGuess{gr, letterHitOrMiss{s, exact}}
 	}
 
