@@ -3,7 +3,7 @@
 {{/* comment */}}
 <div class="flex content-center">
 <form name="wordle" hx-post="/wordle" class="m-auto">
-    <h1>{{ .Bla }}</h1>
+    <h1>{{ .Debug }}</h1>
     <div class="grid grid-cols-5 gap-4">
       {{ if . }}
         {{ range $ri, $rowGuess := .Guesses }}

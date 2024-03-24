@@ -1,10 +1,13 @@
 package main
 
 import (
+	"bufio"
+	"bytes"
 	"embed"
 	"fmt"
 	"html/template"
 	"io"
+	"math/rand"
 	"sync"
 
 	//"io"
@@ -23,6 +26,7 @@ const SESSION_COOKIE_NAME = "session"
 const SESSION_MAX_AGE_IN_SECONDS = 120
 
 //go:embed templates/*.html.tmpl
+//go:embed configs/*.txt
 var fs embed.FS
 
 type env struct {
@@ -93,7 +97,7 @@ type counterState struct {
 }
 
 type wordle struct {
-	Bla     string
+	Debug   string
 	Guesses [6]wordGuess
 }
 
@@ -119,13 +123,13 @@ func main() {
 	t := template.Must(template.ParseFS(fs, "templates/index.html.tmpl", "templates/wordle-form.html.tmpl"))
 
 	http.HandleFunc("/", func(w http.ResponseWriter, req *http.Request) {
-		handleSession(w, req, &sessions)
+		sess := handleSession(w, req, &sessions)
 
 		// io.WriteString(w, fmt.Sprintf("Hello, world!\n%s", sessions))
 		//io.WriteString(w, fmt.Sprintf("Hello, world! %s\n", session.id))
 		log.Printf("sessions:\n%s", sessions)
 
-		err := t.Execute(w, wordle{Bla: "test"})
+		err := t.Execute(w, wordle{Debug: sess.activeSolutionWord.String()})
 		if err != nil {
 			log.Printf("error t.Execute '/' route: %s", err)
 		}
@@ -148,7 +152,7 @@ func main() {
 			log.Printf("error: %s", err)
 		}
 
-		wo := wordle{Bla: "test"}
+		wo := wordle{Debug: s.activeSolutionWord.String()}
 		wo = parseForm(wo, r.PostForm, s.activeSolutionWord)
 
 		// log.Println("")
@@ -222,7 +226,7 @@ func handleSession(w http.ResponseWriter, req *http.Request, sessions *sessions)
 	c := constructCookie(sess)
 	http.SetCookie(w, &c)
 
-	sess.expiresAt = generateSession().expiresAt
+	sess.expiresAt = generateSessionLifetime()
 	(*sessions)[i] = sess
 
 	return sess
@@ -251,10 +255,98 @@ func constructCookie(s session) http.Cookie {
 
 func generateSession() session { //todo: pass it by ref not by copy?
 	id := uuid.NewString()
-	expiresAt := time.Now().Add(SESSION_MAX_AGE_IN_SECONDS * time.Second) // todo: 24 hour, sec now only for testing
-	//activeWord := "ROATE"
-	activeWord := wordleWord{'R', 'O', 'A', 'T', 'E'}
+	expiresAt := generateSessionLifetime()
+	activeWord, err := pickRandomWord()
+	if err != nil {
+		log.Printf("pick random word failed: %s", err)
+
+		activeWord = wordleWord{'R', 'O', 'A', 'T', 'E'}
+	}
+
 	return session{id, expiresAt, SESSION_MAX_AGE_IN_SECONDS, activeWord}
+}
+
+func generateSessionLifetime() time.Time {
+	return time.Now().Add(SESSION_MAX_AGE_IN_SECONDS * time.Second) // todo: 24 hour, sec now only for testing
+}
+
+func pickRandomWord() (wordleWord, error) {
+	f, err := fs.Open("configs/en-en.words.v1.test.txt")
+	if err != nil {
+		return wordleWord{}, fmt.Errorf("pick random word failed when opening file: %s", err)
+	}
+	defer f.Close()
+
+	lineCount, err := lineCounter(f)
+	if err != nil {
+		return wordleWord{}, fmt.Errorf("pick random word failed when reading line count: %s", err)
+	}
+
+	randsource := rand.NewSource(time.Now().UnixNano())
+	randgenerator := rand.New(randsource)
+	rolledLine := randgenerator.Intn(lineCount-1) + 1
+
+	log.Printf("linecount: %d, roll: %d", lineCount, rolledLine)
+
+	fc, err := fs.Open("configs/en-en.words.v1.test.txt")
+	if err != nil {
+		return wordleWord{}, fmt.Errorf("pick random word failed when opening file: %s", err)
+	}
+	defer fc.Close()
+	scanner := bufio.NewScanner(fc)
+	var line int
+	var rollWord string
+	for scanner.Scan() {
+		if line == rolledLine {
+			log.Println("hit if")
+			log.Println(scanner.Text())
+			rollWord = scanner.Text()
+			log.Printf("rollWord: '%s'", rollWord)
+			break
+		}
+		line++
+	}
+	if err := scanner.Err(); err != nil {
+		return wordleWord{}, fmt.Errorf("pick random word failed with: %s", err)
+	}
+
+	rollWordRuneSlice := []rune(rollWord)
+
+	pickedWord := wordleWord{}             //initialized an empty array
+	copy(pickedWord[:], rollWordRuneSlice) //copy the elements of sl
+
+	log.Printf("pickedWord: '%s'", pickedWord)
+
+	return pickedWord, nil
+}
+
+func lineCounter(r io.Reader) (int, error) {
+	var count int
+	const lineBreak = '\n'
+
+	buf := make([]byte, bufio.MaxScanTokenSize)
+
+	for {
+		bufferSize, err := r.Read(buf)
+		if err != nil && err != io.EOF {
+			return 0, err
+		}
+
+		var buffPosition int
+		for {
+			i := bytes.IndexByte(buf[buffPosition:], lineBreak)
+			if i == -1 || bufferSize == buffPosition {
+				break
+			}
+			buffPosition += i + 1
+			count++
+		}
+		if err == io.EOF {
+			break
+		}
+	}
+
+	return count, nil
 }
 
 func parseForm(wo wordle, form url.Values, solutionWord wordleWord) wordle {
