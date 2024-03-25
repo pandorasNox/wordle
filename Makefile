@@ -10,3 +10,7 @@ test:
 .PHONY: down
 down:
 	./scripts/tools.sh down
+
+.PHONY: skocli
+skocli:
+	./scripts/tools.sh skocli

@@ -60,6 +60,10 @@ func_down() {
   docker stop -t1 wordle_test_con
 }
 
+func_skopeo_cli() {
+  docker run -it --rm --entrypoint=bash quay.io/skopeo/stable:v1.14.2
+}
+
 # -----------------------------------------------------------------------------
 
 if [ -z "$*" ]
@@ -85,5 +89,10 @@ else
     if [ $1 == "down" ]
     then
       func_down
+    fi
+
+    if [ $1 == "skocli" ]
+    then
+      func_skopeo_cli
     fi
 fi
