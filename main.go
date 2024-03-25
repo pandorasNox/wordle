@@ -39,11 +39,28 @@ func (e env) String() string {
 	return s
 }
 
+type counterState struct {
+	mu    sync.Mutex
+	count int
+}
+
 type session struct {
+	// todo: think about using mutex or channel for rw session
 	id                 string
 	expiresAt          time.Time
 	maxAgeSeconds      int
 	activeSolutionWord wordleWord
+}
+
+type sessions []session
+
+func (ss sessions) String() string {
+	out := ""
+	for _, s := range ss {
+		out = out + s.id + " " + s.expiresAt.String() + "\n"
+	}
+
+	return out
 }
 
 type wordleWord [5]rune
@@ -80,26 +97,12 @@ func (w wordleWord) count(letter rune) int {
 	return count
 }
 
-type sessions []session
-
-func (ss sessions) String() string {
-	out := ""
-	for _, s := range ss {
-		out = out + s.id + " " + s.expiresAt.String() + "\n"
-	}
-
-	return out
-}
-
-type counterState struct {
-	mu    sync.Mutex
-	count int
-}
-
 type wordle struct {
 	Debug   string
 	Guesses [6]wordGuess
 }
+
+type wordGuess [5]letterGuess
 
 type letterGuess struct {
 	Letter    rune
@@ -110,8 +113,6 @@ type letterHitOrMiss struct {
 	Some  bool
 	Exact bool
 }
-
-type wordGuess [5]letterGuess
 
 func main() {
 	envCfg := envConfig()
