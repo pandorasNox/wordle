@@ -123,7 +123,9 @@ func main() {
 
 	t := template.Must(template.ParseFS(fs, "templates/index.html.tmpl", "templates/wordle-form.html.tmpl"))
 
-	http.HandleFunc("/", func(w http.ResponseWriter, req *http.Request) {
+	mux := http.NewServeMux()
+
+	mux.HandleFunc("GET /", func(w http.ResponseWriter, req *http.Request) {
 		sess := handleSession(w, req, &sessions)
 
 		// io.WriteString(w, fmt.Sprintf("Hello, world!\n%s", sessions))
@@ -136,7 +138,7 @@ func main() {
 		}
 	})
 
-	http.HandleFunc("/wordle", func(w http.ResponseWriter, r *http.Request) {
+	mux.HandleFunc("POST /wordle", func(w http.ResponseWriter, r *http.Request) {
 		s := handleSession(w, r, &sessions)
 		_ = s
 
@@ -172,7 +174,7 @@ func main() {
 	})
 
 	counter := counterState{count: 0}
-	http.HandleFunc("/counter", func(w http.ResponseWriter, req *http.Request) {
+	mux.HandleFunc("POST /counter", func(w http.ResponseWriter, req *http.Request) {
 		// handleSession(w, req, &sessions)
 		counter.mu.Lock()
 		counter.count++
@@ -189,7 +191,7 @@ func main() {
 
 	})
 
-	log.Fatal(http.ListenAndServe(fmt.Sprintf(":%s", envCfg.port), nil))
+	log.Fatal(http.ListenAndServe(fmt.Sprintf(":%s", envCfg.port), mux))
 }
 
 func envConfig() env {
