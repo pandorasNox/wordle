@@ -34,13 +34,28 @@ Options:
 
 # -----------------------------------------------------------------------------
 
+DEVTOOLS_IMG_NAME=wordle_dev_tools
+
 func_watch() {
-   # https://github.com/cosmtrek/air?tab=readme-ov-file
+  func_build_devtools_img "${DEVTOOLS_IMG_NAME}"
+
   docker run -it --rm \
     -w "/workdir" -v "${PWD}":"/workdir" \
     -p "${APP_PORT}":"${APP_PORT}" \
     -e PORT="${APP_PORT}" \
-    docker.io/cosmtrek/air "$@"
+    --entrypoint=ash \
+    "${DEVTOOLS_IMG_NAME}" -c "air --build.cmd 'go build -buildvcs=false -o ./tmp/main' --build.bin './tmp/main'"
+}
+
+func_build_devtools_img() {
+  IMG_NAME=${1:?"first param missing, which is expected to be a chosen image name"}
+
+  docker build \
+    -t "${IMG_NAME}" \
+    -f container-images/dev-tools/Dockerfile \
+    container-images/dev-tools
+
+  printf '%s' "${IMG_NAME}"
 }
 
 func_test() {
@@ -77,8 +92,7 @@ else
 
     if [ $1 == "watch" ]
     then
-      func_watch  --build.cmd "go build -buildvcs=false -o ./tmp/main" --build.bin "./tmp/main"
-    #   func_watch -c "--build.exclude_dir 'bin'" 
+      func_watch
     fi
 
     if [ $1 == "test" ]
