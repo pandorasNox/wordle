@@ -66,6 +66,13 @@ func Test_handleSession(t *testing.T) {
 	patches := gomonkey.ApplyFuncReturn(uuid.NewString, "12345678-abcd-1234-abcd-ab1234567890")
 	defer patches.Reset()
 
+	patchFnPickRandomWord := func() (wordleWord, error) {
+		// return wordleWord{'P', 'A', 'T', 'C', 'H'}, nil
+		return wordleWord{'R', 'O', 'A', 'T', 'E'}, nil
+	}
+	patchesPickRandomWord := gomonkey.ApplyFunc(pickRandomWord, patchFnPickRandomWord)
+	defer patchesPickRandomWord.Reset()
+
 	// recorder := httptest.NewRecorder()
 	// sess := sessions{}
 
