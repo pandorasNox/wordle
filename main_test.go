@@ -28,7 +28,7 @@ func Test_constructCookie(t *testing.T) {
 		// add test cases here
 		{
 			"test_name",
-			args{session{fixedUuid, expireDate, SESSION_MAX_AGE_IN_SECONDS, wordleWord{}}},
+			args{session{fixedUuid, expireDate, SESSION_MAX_AGE_IN_SECONDS, wordleWord{}, wordle{}}},
 			http.Cookie{
 				Name:     SESSION_COOKIE_NAME,
 				Value:    fixedUuid,

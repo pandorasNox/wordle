@@ -46,10 +46,11 @@ type counterState struct {
 
 type session struct {
 	// todo: think about using mutex or channel for rw session
-	id                 string
-	expiresAt          time.Time
-	maxAgeSeconds      int
-	activeSolutionWord wordleWord
+	id                   string
+	expiresAt            time.Time
+	maxAgeSeconds        int
+	activeSolutionWord   wordleWord
+	lastEvaluatedAttempt wordle
 }
 
 type sessions []session
@@ -132,7 +133,10 @@ func main() {
 		//io.WriteString(w, fmt.Sprintf("Hello, world! %s\n", session.id))
 		log.Printf("sessions:\n%s", sessions)
 
-		err := t.Execute(w, wordle{Debug: sess.activeSolutionWord.String()})
+		wo := sess.lastEvaluatedAttempt
+		wo.Debug = sess.activeSolutionWord.String()
+
+		err := t.Execute(w, wo)
 		if err != nil {
 			log.Printf("error t.Execute '/' route: %s", err)
 		}
@@ -266,7 +270,7 @@ func generateSession() session { //todo: pass it by ref not by copy?
 		activeWord = wordleWord{'R', 'O', 'A', 'T', 'E'}
 	}
 
-	return session{id, expiresAt, SESSION_MAX_AGE_IN_SECONDS, activeWord}
+	return session{id, expiresAt, SESSION_MAX_AGE_IN_SECONDS, activeWord, wordle{}}
 }
 
 func generateSessionLifetime() time.Time {
