@@ -64,6 +64,18 @@ func (ss sessions) String() string {
 	return out
 }
 
+func (ss *sessions) updateOrSet(sess session) {
+	index := slices.IndexFunc((*ss), func(s session) bool {
+		return s.id == sess.id
+	})
+	if index == -1 {
+		*ss = append(*ss, sess)
+		return
+	}
+
+	(*ss)[index] = sess
+}
+
 type wordleWord [5]rune
 
 func (w wordleWord) String() string {
@@ -135,6 +147,7 @@ func main() {
 
 		wo := sess.lastEvaluatedAttempt
 		wo.Debug = sess.activeSolutionWord.String()
+		sessions.updateOrSet(sess)
 
 		err := t.Execute(w, wo)
 		if err != nil {
@@ -144,7 +157,6 @@ func main() {
 
 	mux.HandleFunc("POST /wordle", func(w http.ResponseWriter, r *http.Request) {
 		s := handleSession(w, r, &sessions)
-		_ = s
 
 		// b, err := io.ReadAll(r.Body)
 		// if err != nil {
@@ -161,6 +173,8 @@ func main() {
 
 		wo := wordle{Debug: s.activeSolutionWord.String()}
 		wo = parseForm(wo, r.PostForm, s.activeSolutionWord)
+		s.lastEvaluatedAttempt = wo
+		sessions.updateOrSet(s)
 
 		// log.Println("")
 		// log.Printf("rout '/wordle' - wordle sfter parseForm:'%v'\n", wo)

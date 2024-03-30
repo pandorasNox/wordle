@@ -255,3 +255,42 @@ func Test_evaluateGuessedWord(t *testing.T) {
 		})
 	}
 }
+
+func Test_sessions_updateOrSet(t *testing.T) {
+	type args struct {
+		sess session
+	}
+	tests := []struct {
+		name string
+		ss   *sessions
+		args args
+		want sessions
+	}{
+		{
+			"set new session",
+			&sessions{},
+			args{session{id: "foo"}},
+			sessions{session{id: "foo"}},
+		},
+		{
+			"update session",
+			&sessions{session{id: "foo", maxAgeSeconds: 1}},
+			args{session{id: "foo", maxAgeSeconds: 2}},
+			sessions{session{id: "foo", maxAgeSeconds: 2}},
+		},
+		{
+			"update session changes only correct session",
+			&sessions{session{id: "foo"}, session{id: "bar"}, session{id: "baz", maxAgeSeconds: 1}, session{id: "foobar"}},
+			args{session{id: "baz", maxAgeSeconds: 2}},
+			sessions{session{id: "foo"}, session{id: "bar"}, session{id: "baz", maxAgeSeconds: 2}, session{id: "foobar"}},
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			tt.ss.updateOrSet(tt.args.sess)
+			if !reflect.DeepEqual((*tt.ss), tt.want) {
+				t.Errorf("evaluateGuessedWord() = %v, want %v", tt.ss, tt.want)
+			}
+		})
+	}
+}
