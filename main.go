@@ -115,7 +115,27 @@ type wordle struct {
 	Guesses [6]wordGuess
 }
 
+func (w wordle) activeRow() uint8 {
+	for i, wg := range w.Guesses {
+		if !wg.isFilled() {
+			return uint8(i)
+		}
+	}
+
+	return uint8(len(w.Guesses))
+}
+
 type wordGuess [5]letterGuess
+
+func (wg wordGuess) isFilled() bool {
+	for _, l := range wg {
+		if l.Letter == 0 || l.Letter == 65533 {
+			return false
+		}
+	}
+
+	return true
+}
 
 type letterGuess struct {
 	Letter    rune
