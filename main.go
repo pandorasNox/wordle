@@ -8,6 +8,7 @@ import (
 	"html/template"
 	"io"
 	"math/rand"
+	"strings"
 	"sync"
 
 	//"io"
