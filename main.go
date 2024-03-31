@@ -407,7 +407,7 @@ func evaluateGuessedWord(guessedWord []string, solutionWord wordleWord) wordGues
 	resultWordGuess := wordGuess{}
 
 	for i := range guessedWord {
-		gr, _ := utf8.DecodeRuneInString(guessedWord[i])
+		gr, _ := utf8.DecodeRuneInString(strings.ToLower(guessedWord[i]))
 
 		some := solutionWord.contains(gr)
 		exact := solutionWord[i] == gr
