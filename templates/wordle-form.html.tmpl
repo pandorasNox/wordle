@@ -3,12 +3,12 @@
 {{/* comment */}}
 <div class="flex content-center">
 <form name="wordle" hx-post="/wordle" class="m-auto">
-    <h1>{{ .Debug }}</h1>
+    <h1>{{ .Data.Debug }}</h1>
     <div class="grid grid-cols-5 gap-4">
-      {{ if . }}
+      {{ if .Data }}
         {{ $canWrite := false }}
         {{ $hasWrite := false }}
-        {{ range $ri, $rowGuess := .Guesses }}
+        {{ range $ri, $rowGuess := .Data.Guesses }}
           {{ range $li, $letterGuess := $rowGuess }}
             {{ $hasValue := and (ne $letterGuess.Letter 0) (ne $letterGuess.Letter 65533) }}
             {{ if and (not $hasValue) (not $hasWrite) }}

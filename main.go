@@ -127,6 +127,18 @@ type letterHitOrMiss struct {
 	Exact bool
 }
 
+type FormData struct {
+	Data   wordle
+	Errors map[string]string
+}
+
+func (fd FormData) New() FormData {
+	return FormData{
+		Data:   wordle{},
+		Errors: make(map[string]string),
+	}
+}
+
 func main() {
 	envCfg := envConfig()
 	sessions := sessions{}
@@ -149,7 +161,10 @@ func main() {
 		wo.Debug = sess.activeSolutionWord.String()
 		sessions.updateOrSet(sess)
 
-		err := t.Execute(w, wo)
+		fData := FormData{}.New()
+		fData.Data = wo
+
+		err := t.Execute(w, fData)
 		if err != nil {
 			log.Printf("error t.Execute '/' route: %s", err)
 		}
@@ -187,7 +202,10 @@ func main() {
 		//log.Printf("sessions:\n%s", sessions)
 		//log.Println(wo)
 
-		err = t.ExecuteTemplate(w, "wordle-form", wo)
+		fData := FormData{}.New()
+		fData.Data = wo
+
+		err = t.ExecuteTemplate(w, "wordle-form", fData)
 		if err != nil {
 			log.Printf("error t.ExecuteTemplate '/wordle' route: %s", err)
 		}
