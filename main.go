@@ -171,7 +171,9 @@ func main() {
 			log.Printf("error: %s", err)
 		}
 
-		wo := wordle{Debug: s.activeSolutionWord.String()}
+		wo := s.lastEvaluatedAttempt
+		wo.Debug = s.activeSolutionWord.String()
+
 		wo = parseForm(wo, r.PostForm, s.activeSolutionWord)
 		s.lastEvaluatedAttempt = wo
 		sessions.updateOrSet(s)
