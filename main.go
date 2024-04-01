@@ -226,6 +226,15 @@ func main() {
 		fData := FormData{}.New()
 		fData.Data = wo
 
+		//fData.Errors["Time"] = time.Now().Format("2006-01-02 15:04:05")
+		//fData.Errors = nil
+		if false {
+			w.Header().Add("HX-Retarget", "#any-errors")
+			w.WriteHeader(422)
+			w.Write([]byte(time.Now().Format("2006-01-02 15:04:05")))
+			return
+		}
+
 		err = t.ExecuteTemplate(w, "wordle-form", fData)
 		if err != nil {
 			log.Printf("error t.ExecuteTemplate '/wordle' route: %s", err)

@@ -2,7 +2,7 @@
 {{ define "wordle-form" }}
 {{/* comment */}}
 <div class="flex content-center">
-<form name="wordle" hx-post="/wordle" class="m-auto">
+<form name="wordle" hx-post="/wordle" class="m-auto" hx-target-error="#any-errors">
     <h1>{{ .Data.Debug }}</h1>
     <div class="grid grid-cols-5 gap-4">
       {{ if .Data }}

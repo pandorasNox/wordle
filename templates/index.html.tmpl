@@ -4,14 +4,8 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <link href="https://unpkg.com/tailwindcss@^2/dist/tailwind.min.css" rel="stylesheet">
-
-  <!-- Alpine Plugins -->
-  <script defer src="https://cdn.jsdelivr.net/npm/@alpinejs/focus@3.x.x/dist/cdn.min.js"></script>
-
-  <!-- Alpine Core -->
-  <script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js"></script>
-
   <script src="https://unpkg.com/htmx.org@1.9.10" integrity="sha384-D1Kt99CQMDuVetoL1lrYwg5t+9QdHe7NLX/SoJYkXDFfX37iInKRy5xLSi8nO7UC" crossorigin="anonymous"></script>
+  <script src="https://unpkg.com/htmx.org@1.9.11/dist/ext/response-targets.js"></script>
 </head>
 <body>
   <h1>Welcome to the wordle clone</h1>
@@ -34,7 +28,9 @@
       </div>
     </div>
   </div>
-  
-  {{template "wordle-form" . }}
+  <div hx-ext="response-targets">
+    <div id="any-errors"></div>
+    {{template "wordle-form" . }}
+  </div>
 </body>
 </html>
