@@ -210,6 +210,14 @@ func main() {
 		wo := s.lastEvaluatedAttempt
 		wo.Debug = s.activeSolutionWord.String()
 
+		// log.Printf("debug '/wordle' route - row compare: activeRow='%d' / formRowCount='%d' \n", s.lastEvaluatedAttempt.activeRow(), countFilledFormRows(r.PostForm))
+		if s.lastEvaluatedAttempt.activeRow() != countFilledFormRows(r.PostForm)-1 {
+			w.Header().Add("HX-Retarget", "#any-errors")
+			w.WriteHeader(422)
+			w.Write([]byte("faked rows"))
+			return
+		}
+
 		wo = parseForm(wo, r.PostForm, s.activeSolutionWord)
 		s.lastEvaluatedAttempt = wo
 		sessions.updateOrSet(s)
@@ -418,6 +426,27 @@ func lineCounter(r io.Reader) (int, error) {
 	}
 
 	return count, nil
+}
+
+func countFilledFormRows(postWordleForm url.Values) uint8 {
+	isfilled := func(row []string) bool {
+		emptyButWithLen := make([]string, len(row)) // we need empty slice but with right elem length
+		return !(slices.Compare(row, emptyButWithLen) == 0)
+	}
+
+	// log.Printf("  debug: postWordleFilledRowsCount form: %v \n", postWordleForm)
+
+	var count uint8 = 0
+	l := len(postWordleForm)
+	for i := 0; i < l; i++ {
+		guessedWord, ok := postWordleForm[fmt.Sprintf("r%d", i)]
+		// log.Printf("    debug: postWordleFilledRowsCount guessedWord: %v \n", guessedWord)
+		if ok && isfilled(guessedWord) {
+			count++
+		}
+	}
+
+	return count
 }
 
 func parseForm(wo wordle, form url.Values, solutionWord wordleWord) wordle {
