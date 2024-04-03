@@ -133,16 +133,18 @@ func Test_parseForm(t *testing.T) {
 		solutionWord wordleWord
 	}
 	tests := []struct {
-		name string
-		args args
-		want wordle
+		name    string
+		args    args
+		want    wordle
+		wantErr bool
 	}{
 		// TODO: Add test cases.
 		{
 			name: "no hits, neither same or exact",
 			// args: args{wordle{}, url.Values{}, wordleWord{'M', 'I', 'S', 'S', 'S'}},
-			args: args{wordle{}, url.Values{"r0": []string{}}, wordleWord{'M', 'I', 'S', 'S', 'S'}},
-			want: wordle{},
+			args:    args{wordle{}, url.Values{"r0": []string{}}, wordleWord{'M', 'I', 'S', 'S', 'S'}},
+			want:    wordle{},
+			wantErr: false,
 		},
 		{
 			name: "full exact match",
@@ -153,19 +155,20 @@ func Test_parseForm(t *testing.T) {
 			},
 			want: wordle{"", [6]wordGuess{
 				{
-					{'M', letterHitOrMiss{true, true}},
-					{'A', letterHitOrMiss{true, true}},
-					{'T', letterHitOrMiss{true, true}},
-					{'C', letterHitOrMiss{true, true}},
-					{'H', letterHitOrMiss{true, true}},
+					{'m', letterHitOrMiss{true, true}},
+					{'a', letterHitOrMiss{true, true}},
+					{'t', letterHitOrMiss{true, true}},
+					{'c', letterHitOrMiss{true, true}},
+					{'h', letterHitOrMiss{true, true}},
 				},
 			}},
+			wantErr: false,
 		},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			if got := parseForm(tt.args.wo, tt.args.form, tt.args.solutionWord); !reflect.DeepEqual(got, tt.want) {
-				t.Errorf("parseForm() = %v, want %v", got, tt.want)
+			if got, err := parseForm(tt.args.wo, tt.args.form, tt.args.solutionWord); !reflect.DeepEqual(got, tt.want) || (err != nil) != tt.wantErr {
+				t.Errorf("parseForm() = %v, %v; want %v, %v", got, err != nil, tt.want, tt.wantErr)
 			}
 		})
 	}

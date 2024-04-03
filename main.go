@@ -11,6 +11,7 @@ import (
 	"math/rand"
 	"strings"
 	"sync"
+	"unicode"
 
 	//"io"
 	"log"
@@ -112,6 +113,14 @@ func (w wordleWord) count(letter rune) int {
 	}
 
 	return count
+}
+
+func (w wordleWord) ToLower() wordleWord {
+	for i, v := range w {
+		w[i] = unicode.ToLower(v)
+	}
+
+	return w
 }
 
 type wordle struct {
@@ -503,6 +512,7 @@ func parseForm(wo wordle, form url.Values, solutionWord wordleWord) (wordle, err
 }
 
 func evaluateGuessedWord(guessedWord []string, solutionWord wordleWord) wordGuess {
+	solutionWord = solutionWord.ToLower()
 	guessedLetterCountMap := make(map[rune]int)
 
 	resultWordGuess := wordGuess{}
