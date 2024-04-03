@@ -1,8 +1,11 @@
 
 {{ define "wordle-form" }}
 {{/* comment */}}
+
+<div hx-ext="response-targets">
 <div class="flex content-center">
 <form name="wordle" hx-post="/wordle" class="m-auto" hx-target-error="#any-errors">
+    <div id="any-errors"></div>
     <h1>{{ .Data.Debug }}</h1>
     <div class="grid grid-cols-5 gap-2">
       {{ if .Data }}
@@ -38,5 +41,6 @@
 
     <input type="submit" hidden />
 </form>
+</div>
 </div>
 {{ end }}
