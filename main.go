@@ -4,6 +4,7 @@ import (
 	"bufio"
 	"bytes"
 	"embed"
+	"errors"
 	"fmt"
 	"html/template"
 	"io"
@@ -29,6 +30,8 @@ const SESSION_MAX_AGE_IN_SECONDS = 120
 //go:embed templates/*.html.tmpl
 //go:embed configs/*.txt
 var fs embed.FS
+
+var ErrNotInWordList = errors.New("not in wordlist")
 
 type env struct {
 	port string
@@ -160,6 +163,14 @@ func (fd FormData) New() FormData {
 	}
 }
 
+func Map[T, U any](ts []T, f func(T) U) []U {
+    us := make([]U, len(ts))
+    for i := range ts {
+        us[i] = f(ts[i])
+    }
+    return us
+}
+
 func main() {
 	envCfg := envConfig()
 	sessions := sessions{}
@@ -218,7 +229,14 @@ func main() {
 			return
 		}
 
-		wo = parseForm(wo, r.PostForm, s.activeSolutionWord)
+		wo, err = parseForm(wo, r.PostForm, s.activeSolutionWord)
+		if err == ErrNotInWordList {
+			w.Header().Add("HX-Retarget", "#any-errors")
+			w.WriteHeader(422)
+			w.Write([]byte("word not in word list"))
+			return
+		}
+
 		s.lastEvaluatedAttempt = wo
 		sessions.updateOrSet(s)
 
@@ -449,7 +467,7 @@ func countFilledFormRows(postWordleForm url.Values) uint8 {
 	return count
 }
 
-func parseForm(wo wordle, form url.Values, solutionWord wordleWord) wordle {
+func parseForm(wo wordle, form url.Values, solutionWord wordleWord) (wordle, error) {
 
 	// log.Println("")
 	// log.Printf("parseForm() var solutionWord:'%v'\n", solutionWord)
@@ -472,12 +490,16 @@ func parseForm(wo wordle, form url.Values, solutionWord wordleWord) wordle {
 		// log.Println("parseForm() var guessedWord:", guessedWord)
 		// log.Println("")
 
+		if slices.Compare(Map(guessedWord, strings.ToLower), []string{"x", "x", "x", "x", "x"}) == 0 {
+			return wo, ErrNotInWordList
+		}
+
 		wg := evaluateGuessedWord(guessedWord, solutionWord)
 
 		wo.Guesses[ri] = wg
 	}
 
-	return wo
+	return wo, nil
 }
 
 func evaluateGuessedWord(guessedWord []string, solutionWord wordleWord) wordGuess {
