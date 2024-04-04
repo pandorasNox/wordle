@@ -150,6 +150,16 @@ func (wg wordGuess) isFilled() bool {
 	return true
 }
 
+func (wg wordGuess) isSolved() bool {
+	for _, lg := range wg {
+		if lg.HitOrMiss.Exact == false {
+			return false
+		}
+	}
+
+	return true
+}
+
 type letterGuess struct {
 	Letter    rune
 	HitOrMiss letterHitOrMiss
@@ -161,8 +171,9 @@ type letterHitOrMiss struct {
 }
 
 type FormData struct {
-	Data   wordle
-	Errors map[string]string
+	Data     wordle
+	Errors   map[string]string
+	IsSolved bool
 }
 
 func (fd FormData) New() FormData {
@@ -173,11 +184,11 @@ func (fd FormData) New() FormData {
 }
 
 func Map[T, U any](ts []T, f func(T) U) []U {
-    us := make([]U, len(ts))
-    for i := range ts {
-        us[i] = f(ts[i])
-    }
-    return us
+	us := make([]U, len(ts))
+	for i := range ts {
+		us[i] = f(ts[i])
+	}
+	return us
 }
 
 func main() {
@@ -199,11 +210,16 @@ func main() {
 		log.Printf("sessions:\n%s", sessions)
 
 		wo := sess.lastEvaluatedAttempt
+		// log.Printf("debug '/' route - sess.lastEvaluatedAttempt:\n %v\n", wo)
 		wo.Debug = sess.activeSolutionWord.String()
 		sessions.updateOrSet(sess)
 
 		fData := FormData{}.New()
 		fData.Data = wo
+
+		if wo.activeRow() > 0 {
+			fData.IsSolved = wo.Guesses[wo.activeRow()-1].isSolved()
+		}
 
 		err := t.Execute(w, fData)
 		if err != nil {
@@ -249,25 +265,11 @@ func main() {
 		s.lastEvaluatedAttempt = wo
 		sessions.updateOrSet(s)
 
-		// log.Println("")
-		// log.Printf("rout '/wordle' - wordle sfter parseForm:'%v'\n", wo)
-		// log.Println("")
-
-		// io.WriteString(w, fmt.Sprintf("Hello, world!\n%s", sessions))
-		//io.WriteString(w, fmt.Sprintf("Hello, world! %s\n", session.id))
-		//log.Printf("sessions:\n%s", sessions)
-		//log.Println(wo)
-
 		fData := FormData{}.New()
 		fData.Data = wo
 
-		//fData.Errors["Time"] = time.Now().Format("2006-01-02 15:04:05")
-		//fData.Errors = nil
-		if false {
-			w.Header().Add("HX-Retarget", "#any-errors")
-			w.WriteHeader(422)
-			w.Write([]byte(time.Now().Format("2006-01-02 15:04:05")))
-			return
+		if wo.activeRow() > 0 {
+			fData.IsSolved = wo.Guesses[wo.activeRow()-1].isSolved()
 		}
 
 		err = t.ExecuteTemplate(w, "wordle-form", fData)

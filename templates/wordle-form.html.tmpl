@@ -1,8 +1,12 @@
 
 {{ define "wordle-form" }}
-  <div hx-ext="response-targets">
+  <div id="wordle-container" hx-ext="response-targets">  
+    <h2 class="text-center">{{ if .IsSolved }}SOLVED{{ else }}unsolved{{ end }}</h2> 
     <div class="flex content-center">
-      <form name="wordle" hx-post="/wordle" class="m-auto" hx-target-error="#any-errors">
+      <form
+        name="wordle" hx-post="/wordle" hx-target="#wordle-container" class="m-auto" hx-target-error="#any-errors"
+        {{ if .IsSolved }}inert{{ end }}
+      >
           <div id="any-errors"></div>
           <h1>{{ .Data.Debug }}</h1>
           <div class="grid grid-cols-5 gap-2">
@@ -39,5 +43,15 @@
           <input type="submit" hidden />
       </form>
     </div>
+  {{ if .IsSolved }}
+    <div class="flex content-center">
+      <button class="m-auto mt-2 inline-flex items-center px-3 py-2 text-sm font-medium text-center text-white bg-blue-700 rounded-lg hover:bg-blue-800 focus:ring-4 focus:outline-none focus:ring-blue-300 dark:bg-blue-600 dark:hover:bg-blue-700 dark:focus:ring-blue-800"
+        hx-post="/new"
+        hx-target=""
+      >
+        New Game
+      </button>
+    </div>
+  {{ end }}
   </div>
 {{ end }}
