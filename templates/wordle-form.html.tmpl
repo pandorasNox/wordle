@@ -1,46 +1,43 @@
 
 {{ define "wordle-form" }}
-{{/* comment */}}
-
-<div hx-ext="response-targets">
-<div class="flex content-center">
-<form name="wordle" hx-post="/wordle" class="m-auto" hx-target-error="#any-errors">
-    <div id="any-errors"></div>
-    <h1>{{ .Data.Debug }}</h1>
-    <div class="grid grid-cols-5 gap-2">
-      {{ if .Data }}
-        {{ $canWrite := false }}
-        {{ $hasWrite := false }}
-        {{ range $ri, $rowGuess := .Data.Guesses }}
-          {{ range $li, $letterGuess := $rowGuess }}
-            {{ $hasValue := and (ne $letterGuess.Letter 0) (ne $letterGuess.Letter 65533) }}
-            {{ if and (not $hasValue) (not $hasWrite) }}
-              {{ $canWrite = true }}
-              {{ $hasWrite = true }}
+  <div hx-ext="response-targets">
+    <div class="flex content-center">
+      <form name="wordle" hx-post="/wordle" class="m-auto" hx-target-error="#any-errors">
+          <div id="any-errors"></div>
+          <h1>{{ .Data.Debug }}</h1>
+          <div class="grid grid-cols-5 gap-2">
+            {{ if .Data }}
+              {{ $canWrite := false }}
+              {{ $hasWrite := false }}
+              {{ range $ri, $rowGuess := .Data.Guesses }}
+                {{ range $li, $letterGuess := $rowGuess }}
+                  {{ $hasValue := and (ne $letterGuess.Letter 0) (ne $letterGuess.Letter 65533) }}
+                  {{ if and (not $hasValue) (not $hasWrite) }}
+                    {{ $canWrite = true }}
+                    {{ $hasWrite = true }}
+                  {{ end }}
+                  <div>
+                    <input
+                      {{ if and $canWrite (eq $li 0) }}autofocus{{ end }}
+                      type="text"
+                      maxlength="1"
+                      {{ if $canWrite }}required="required"{{ else if not $hasWrite }}readonly="readonly"{{ else }}disabled="disabled"{{ end }}
+                      pattern="[A-Za-z]"
+                      name="r{{ $ri }}"
+                      style="caret-color: transparent;"
+                      class="capitalize border-2 rounded-md border-gray-400 {{ if $letterGuess.HitOrMiss.Exact }}bg-green-400{{ else if $letterGuess.HitOrMiss.Some }}bg-yellow-200{{ end }} w-16 h-16 text-center text-4xl text-gray-600"
+                      value="{{ if $hasValue }}{{ printf "%c" $letterGuess.Letter }}{{ end }}"
+                      autocomplete="off"
+                    />
+                  </div>
+                {{ end }}
+                {{ if $hasWrite }}{{ $canWrite = false }}{{ end }}
+              {{ end }}
             {{ end }}
-            <div>
-              <input
-                {{ if and $canWrite (eq $li 0) }}autofocus{{ end }}
-                type="text"
-                maxlength="1"
-                {{ if $canWrite }}required="required"{{ else if not $hasWrite }}readonly="readonly"{{ else }}disabled="disabled"{{ end }}
-                pattern="[A-Za-z]"
-                name="r{{ $ri }}"
-                style="caret-color: transparent;"
-                class="capitalize border-2 rounded-md border-gray-400 {{ if $letterGuess.HitOrMiss.Exact }}bg-green-400{{ else if $letterGuess.HitOrMiss.Some }}bg-yellow-200{{ end }} w-16 h-16 text-center text-4xl text-gray-600"
-                value="{{ if $hasValue }}{{ printf "%c" $letterGuess.Letter }}{{ end }}"
-                autocomplete="off"
-              />
-            </div>
-          {{ end }}
-          {{ if $hasWrite }}{{ $canWrite = false }}{{ end }}
-        {{ end }}
-      {{ end }}
+          </div>
+
+          <input type="submit" hidden />
+      </form>
     </div>
-
-
-    <input type="submit" hidden />
-</form>
-</div>
-</div>
+  </div>
 {{ end }}
