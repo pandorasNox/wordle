@@ -197,11 +197,11 @@ func Test_evaluateGuessedWord(t *testing.T) {
 				wordleWord{'M', 'A', 'T', 'C', 'H'},
 			},
 			want: wordGuess{
-				{'M', letterHitOrMiss{true, true}},
-				{'A', letterHitOrMiss{true, true}},
-				{'T', letterHitOrMiss{true, true}},
-				{'C', letterHitOrMiss{true, true}},
-				{'H', letterHitOrMiss{true, true}},
+				{'m', letterHitOrMiss{true, true}},
+				{'a', letterHitOrMiss{true, true}},
+				{'t', letterHitOrMiss{true, true}},
+				{'c', letterHitOrMiss{true, true}},
+				{'h', letterHitOrMiss{true, true}},
 			},
 		},
 		{
@@ -211,11 +211,11 @@ func Test_evaluateGuessedWord(t *testing.T) {
 				wordleWord{'R', 'O', 'A', 'T', 'E'},
 			},
 			want: wordGuess{
-				{'R', letterHitOrMiss{Some: true, Exact: true}},
-				{'A', letterHitOrMiss{Some: true, Exact: false}},
-				{'U', letterHitOrMiss{Some: false, Exact: false}},
-				{'L', letterHitOrMiss{Some: false, Exact: false}},
-				{'O', letterHitOrMiss{Some: true, Exact: false}},
+				{'r', letterHitOrMiss{Some: true, Exact: true}},
+				{'a', letterHitOrMiss{Some: true, Exact: false}},
+				{'u', letterHitOrMiss{Some: false, Exact: false}},
+				{'l', letterHitOrMiss{Some: false, Exact: false}},
+				{'o', letterHitOrMiss{Some: true, Exact: false}},
 			},
 		},
 		{
@@ -225,11 +225,11 @@ func Test_evaluateGuessedWord(t *testing.T) {
 				wordleWord{'R', 'O', 'A', 'T', 'E'},
 			},
 			want: wordGuess{
-				{'R', letterHitOrMiss{Some: true, Exact: true}},
-				{'O', letterHitOrMiss{Some: true, Exact: true}},
-				{'T', letterHitOrMiss{Some: true, Exact: false}},
-				{'O', letterHitOrMiss{Some: false, Exact: false}}, // both false bec we already found it or even already guesst the exact match
-				{'R', letterHitOrMiss{Some: false, Exact: false}}, // both false bec we already found it or even already guesst the exact match
+				{'r', letterHitOrMiss{Some: true, Exact: true}},
+				{'o', letterHitOrMiss{Some: true, Exact: true}},
+				{'t', letterHitOrMiss{Some: true, Exact: false}},
+				{'o', letterHitOrMiss{Some: false, Exact: false}}, // both false bec we already found it or even already guesst the exact match
+				{'r', letterHitOrMiss{Some: false, Exact: false}}, // both false bec we already found it or even already guesst the exact match
 			},
 		},
 		// {
@@ -241,11 +241,11 @@ func Test_evaluateGuessedWord(t *testing.T) {
 		// 	},
 		// 	want: wordle{"", [6][5]wordleLetter{
 		// 		{
-		// 			{'R', letterHitOrMiss{true, true}},
-		// 			{'O', letterHitOrMiss{true, true}},
-		// 			{'T', letterHitOrMiss{true, true}},
-		// 			{'O', letterHitOrMiss{true, true}},
-		// 			{'R', letterHitOrMiss{true, true}},
+		// 			{'r', letterHitOrMiss{true, true}},
+		// 			{'o', letterHitOrMiss{true, true}},
+		// 			{'t', letterHitOrMiss{true, true}},
+		// 			{'o', letterHitOrMiss{true, true}},
+		// 			{'r', letterHitOrMiss{true, true}},
 		// 		},
 		// 	}},
 		// },
