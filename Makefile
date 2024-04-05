@@ -14,3 +14,7 @@ down:
 .PHONY: skocli
 skocli:
 	./scripts/tools.sh skocli
+
+.PHONY: img
+img:
+	./scripts/tools.sh img

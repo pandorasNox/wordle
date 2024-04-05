@@ -53,7 +53,7 @@ func_build_devtools_img() {
   docker build \
     -t "${IMG_NAME}" \
     -f container-images/dev-tools/Dockerfile \
-    container-images/dev-tools
+    .
 
   printf '%s' "${IMG_NAME}"
 }
@@ -108,5 +108,10 @@ else
     if [ $1 == "skocli" ]
     then
       func_skopeo_cli
+    fi
+
+    if [ $1 == "img" ]
+    then
+      func_build_devtools_img "${DEVTOOLS_IMG_NAME}"
     fi
 fi
