@@ -297,3 +297,7 @@ func Test_sessions_updateOrSet(t *testing.T) {
 		})
 	}
 }
+
+// todo: test for ???:
+//   files, err := getAllFilenames(staticFS)
+//   log.Printf("  debug fsys:\n    %v\n    %s\n", files, err)

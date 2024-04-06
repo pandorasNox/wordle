@@ -19,6 +19,7 @@
 
 # Javascript files
 node_modules/
+web/static/generated
 
 # Go workspace file
 go.work

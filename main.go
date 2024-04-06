@@ -13,7 +13,7 @@ import (
 	"sync"
 	"unicode"
 
-	//"io"
+	iofs "io/fs"
 	"log"
 	"net/http"
 	"net/url"
@@ -28,8 +28,9 @@ import (
 const SESSION_COOKIE_NAME = "session"
 const SESSION_MAX_AGE_IN_SECONDS = 120
 
-//go:embed templates/*.html.tmpl
 //go:embed configs/*.txt
+//go:embed templates/*.html.tmpl
+//go:embed web/static/generated/*.js
 var fs embed.FS
 
 var ErrNotInWordList = errors.New("not in wordlist")
@@ -171,15 +172,17 @@ type letterHitOrMiss struct {
 }
 
 type FormData struct {
-	Data     wordle
-	Errors   map[string]string
-	IsSolved bool
+	Data                  wordle
+	Errors                map[string]string
+	IsSolved              bool
+	JSCachePurgeTimestamp int64
 }
 
 func (fd FormData) New() FormData {
 	return FormData{
-		Data:   wordle{},
-		Errors: make(map[string]string),
+		Data:                  wordle{},
+		Errors:                make(map[string]string),
+		JSCachePurgeTimestamp: time.Now().Unix(),
 	}
 }
 
@@ -189,6 +192,22 @@ func Map[T, U any](ts []T, f func(T) U) []U {
 		us[i] = f(ts[i])
 	}
 	return us
+}
+
+func getAllFilenames(efs iofs.FS) (files []string, err error) {
+	if err := iofs.WalkDir(efs, ".", func(path string, d iofs.DirEntry, err error) error {
+		if d.IsDir() {
+			return nil
+		}
+
+		files = append(files, path)
+
+		return nil
+	}); err != nil {
+		return nil, err
+	}
+
+	return files, nil
 }
 
 func main() {
@@ -201,6 +220,16 @@ func main() {
 	t := template.Must(template.ParseFS(fs, "templates/index.html.tmpl", "templates/wordle-form.html.tmpl"))
 
 	mux := http.NewServeMux()
+
+	staticFS, err := iofs.Sub(fs, "web/static")
+	if err != nil {
+		log.Fatalf("subtree for 'static' dir of embed fs failed: %s", err)
+	}
+
+	mux.Handle(
+		"GET /static/",
+		http.StripPrefix("/static", http.FileServer(http.FS(staticFS))),
+	)
 
 	mux.HandleFunc("GET /", func(w http.ResponseWriter, req *http.Request) {
 		sess := handleSession(w, req, &sessions)
