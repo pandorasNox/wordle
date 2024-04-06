@@ -68,9 +68,9 @@ func_start() {
     docker run -d --rm \
       --name ${CONTAINER_NAME} \
       -w "/workdir" -v "${PWD}":"/workdir" \
-      -v "${PWD}/tmp/local_go_dev_dir":"/go" \
       --entrypoint=ash \
       ${IMG_NAME} -c "while true; do sleep 2000000; done"
+      # -v "${PWD}/tmp/local_go_dev_dir":"/go" \
   fi
 }
 
