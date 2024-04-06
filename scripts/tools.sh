@@ -35,16 +35,18 @@ Options:
 # -----------------------------------------------------------------------------
 
 DEVTOOLS_IMG_NAME=wordle_dev_tools
+CLI_CONTAINER_NAME=wordle_cli_con
 
-func_watch() {
-  func_build_devtools_img "${DEVTOOLS_IMG_NAME}"
+func_cli() {
+  CONTAINER_NAME=${CLI_CONTAINER_NAME}
 
-  docker run -it --rm \
-    -w "/workdir" -v "${PWD}":"/workdir" \
-    -p "${APP_PORT}":"${APP_PORT}" \
-    -e PORT="${APP_PORT}" \
-    --entrypoint=ash \
-    "${DEVTOOLS_IMG_NAME}" -c "air --build.cmd 'go build -buildvcs=false -o ./tmp/main' --build.bin './tmp/main'"
+  if ! (docker ps --format "{{.Names}}" | grep "${CONTAINER_NAME}"); then
+    func_build_devtools_img "${DEVTOOLS_IMG_NAME}"
+
+    func_start "${DEVTOOLS_IMG_NAME}" "${CONTAINER_NAME}"
+  fi
+
+  docker exec -it ${CONTAINER_NAME} ash
 }
 
 func_build_devtools_img() {
@@ -58,21 +60,45 @@ func_build_devtools_img() {
   printf '%s' "${IMG_NAME}"
 }
 
-func_test() {
-  if ! (docker ps --format "{{.Names}}" | grep "wordle_test_con"); then
+func_start() {
+  IMG_NAME=${1:?"first param missing, which is expected to be a chosen image name"}
+  CONTAINER_NAME=${2:?"second param missing, which is expected to be a chosen container name"}
+
+  if ! (docker ps --format "{{.Names}}" | grep "${CONTAINER_NAME}"); then
     docker run -d --rm \
-      --name wordle_test_con \
+      --name ${CONTAINER_NAME} \
       -w "/workdir" -v "${PWD}":"/workdir" \
       -v "${PWD}/tmp/local_go_dev_dir":"/go" \
-      --entrypoint=bash \
-      docker.io/cosmtrek/air -c "while true; do sleep 2000000; done"
+      --entrypoint=ash \
+      ${IMG_NAME} -c "while true; do sleep 2000000; done"
+  fi
+}
+
+func_watch() {
+  func_build_devtools_img "${DEVTOOLS_IMG_NAME}"
+
+  docker run -it --rm \
+    -w "/workdir" -v "${PWD}":"/workdir" \
+    -p "${APP_PORT}":"${APP_PORT}" \
+    -e PORT="${APP_PORT}" \
+    --entrypoint=ash \
+    "${DEVTOOLS_IMG_NAME}" -c "air --build.cmd 'go build -buildvcs=false -o ./tmp/main' --build.bin './tmp/main'"
+}
+
+func_test() {
+  CONTAINER_NAME=${CLI_CONTAINER_NAME}
+
+  if ! (docker ps --format "{{.Names}}" | grep "${CLI_CONTAINER_NAME}"); then
+    func_build_devtools_img "${DEVTOOLS_IMG_NAME}"
+
+    func_start "${DEVTOOLS_IMG_NAME}" "${CONTAINER_NAME}"
   fi
 
-  docker exec -t wordle_test_con bash -c "$@"
+  docker exec -t ${CONTAINER_NAME} ash -c "$@"
 }
 
 func_down() {
-  docker stop -t1 wordle_test_con
+  docker stop -t1 "${CLI_CONTAINER_NAME}"
 }
 
 func_skopeo_cli() {
@@ -88,6 +114,11 @@ else
     if [ $1 == "--help" ] || [ $1 == "-h" ]
     then
         echo "$__usage"
+    fi
+
+    if [ $1 == "cli" ]
+    then
+      func_cli
     fi
 
     if [ $1 == "watch" ]

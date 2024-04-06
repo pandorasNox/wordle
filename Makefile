@@ -1,4 +1,8 @@
 
+.PHONY: cli
+cli:
+	./scripts/tools.sh cli
+
 .PHONY: watch
 watch:
 	./scripts/tools.sh watch
