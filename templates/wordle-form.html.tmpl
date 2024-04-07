@@ -29,7 +29,7 @@
                       pattern="[A-Za-z]"
                       name="r{{ $ri }}"
                       style="caret-color: transparent;"
-                      class="capitalize border-2 rounded-md border-gray-400 {{ if $letterGuess.HitOrMiss.Exact }}bg-green-400{{ else if $letterGuess.HitOrMiss.Some }}bg-yellow-200{{ end }} w-16 h-16 text-center text-4xl text-gray-600"
+                      class="{{ if $canWrite }}focusable {{ end }}capitalize border-2 rounded-md border-gray-400 {{ if $letterGuess.HitOrMiss.Exact }}bg-green-400{{ else if $letterGuess.HitOrMiss.Some }}bg-yellow-200{{ end }} w-16 h-16 text-center text-4xl text-gray-600"
                       value="{{ if $hasValue }}{{ printf "%c" $letterGuess.Letter }}{{ end }}"
                       autocomplete="off"
                     />
