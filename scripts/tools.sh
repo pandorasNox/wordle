@@ -105,6 +105,18 @@ func_skopeo_cli() {
   docker run -it --rm --entrypoint=bash quay.io/skopeo/stable:v1.14.2
 }
 
+func_typescript_build() {
+  CONTAINER_NAME=${CLI_CONTAINER_NAME}
+
+  if ! (docker ps --format "{{.Names}}" | grep "${CLI_CONTAINER_NAME}"); then
+    func_build_devtools_img "${DEVTOOLS_IMG_NAME}"
+
+    func_start "${DEVTOOLS_IMG_NAME}" "${CONTAINER_NAME}"
+  fi
+
+  docker exec -t ${CONTAINER_NAME} ash -ce "npm install; npx tsc;"
+}
+
 # -----------------------------------------------------------------------------
 
 if [ -z "$*" ]
@@ -144,5 +156,10 @@ else
     if [ $1 == "img" ]
     then
       func_build_devtools_img "${DEVTOOLS_IMG_NAME}"
+    fi
+
+    if [ $1 == "tsc" ]
+    then
+      func_typescript_build
     fi
 fi

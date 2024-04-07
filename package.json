@@ -9,6 +9,6 @@
   "author": "",
   "license": "Apache-2.0",
   "devDependencies": {
-    "tsc": "^2.0.4"
+    "typescript": "^5.4.4"
   }
 }

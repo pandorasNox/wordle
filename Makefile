@@ -22,3 +22,7 @@ skocli:
 .PHONY: img
 img:
 	./scripts/tools.sh img
+
+.PHONY: tsc
+tsc:
+	./scripts/tools.sh tsc
