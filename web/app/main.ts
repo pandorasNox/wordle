@@ -1,2 +1,2 @@
 
-console.log("main.ts executed")
+console.log("main.ts was executed")

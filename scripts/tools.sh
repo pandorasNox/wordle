@@ -82,7 +82,7 @@ func_watch() {
     -p "${APP_PORT}":"${APP_PORT}" \
     -e PORT="${APP_PORT}" \
     --entrypoint=ash \
-    "${DEVTOOLS_IMG_NAME}" -c "air --build.cmd 'go build -buildvcs=false -o ./tmp/main' --build.bin './tmp/main'"
+    "${DEVTOOLS_IMG_NAME}" -c "air --build.cmd 'npx tsc --project web/app/tsconfig.json && go build -buildvcs=false -o ./tmp/main' --build.bin './tmp/main' -build.include_ext 'go,tpl,tmpl,templ,html,ts,json' -build.exclude_dir 'assets,tmp,vendor,node_modules'"
 }
 
 func_test() {
@@ -114,7 +114,7 @@ func_typescript_build() {
     func_start "${DEVTOOLS_IMG_NAME}" "${CONTAINER_NAME}"
   fi
 
-  docker exec -t ${CONTAINER_NAME} ash -ce "npm install; npx tsc;"
+  docker exec -t ${CONTAINER_NAME} ash -ce "npm install; npx tsc --project web/app/tsconfig.json;"
 }
 
 # -----------------------------------------------------------------------------
