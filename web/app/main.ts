@@ -6,7 +6,14 @@
     type State = {
         letters: Array<string>
     }
-    
+
+    function main(): void {
+        globalThemeHandler();
+        themeButtonToggleHandler();
+
+        document.addEventListener('DOMContentLoaded', initListener, false);
+    }
+
     function globalThemeHandler() {
         // On page load or when changing themes, best to add inline in `head` to avoid FOUC
         if (localStorage.getItem('color-theme') === 'dark' || (!('color-theme' in localStorage) && window.matchMedia('(prefers-color-scheme: dark)').matches)) {
@@ -67,9 +74,6 @@
     }
 
     function initListener(): void {
-        globalThemeHandler();
-        themeButtonToggleHandler();
-
         let state: State = {
             letters: [],
         };
@@ -113,6 +117,6 @@
         });
     }
 
-    document.addEventListener('DOMContentLoaded', initListener, false);
+    main();
 
 })();
