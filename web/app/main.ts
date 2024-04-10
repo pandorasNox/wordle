@@ -8,13 +8,13 @@
     }
 
     function main(): void {
-        globalThemeHandler();
+        initalThemeHandler();
         themeButtonToggleHandler();
 
-        document.addEventListener('DOMContentLoaded', initListener, false);
+        document.addEventListener('DOMContentLoaded', initKeyListener, false);
     }
 
-    function globalThemeHandler() {
+    function initalThemeHandler() {
         // On page load or when changing themes, best to add inline in `head` to avoid FOUC
         if (localStorage.getItem('color-theme') === 'dark' || (!('color-theme' in localStorage) && window.matchMedia('(prefers-color-scheme: dark)').matches)) {
             document.documentElement.classList.add('dark');
@@ -73,7 +73,7 @@
 
     }
 
-    function initListener(): void {
+    function initKeyListener(): void {
         let state: State = {
             letters: [],
         };
