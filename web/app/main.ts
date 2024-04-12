@@ -1,13 +1,37 @@
+declare var htmx: any;
 // IIFE (Immediately Invoked Function Expression) / Self-Executing Anonymous Function
 (function () {
     type State = {
         letters: Array<string>
+        inputs: NodeListOf<HTMLInputElement>
     }
 
     function main(): void {
         initalThemeHandler();
-        document.addEventListener('DOMContentLoaded', themeButtonToggleHandler, false);
-        document.addEventListener('DOMContentLoaded', initKeyListener, false);
+        document.addEventListener('DOMContentLoaded', function() {
+            console.log('dom loaded');
+
+            const inputs: NodeListOf<HTMLInputElement> =
+                document.querySelectorAll(".focusable");
+
+            let state: State = {
+                letters: [],
+                inputs: inputs,
+            };
+
+            themeButtonToggleHandler();
+            initKeyListener(state);
+            document.addEventListener('htmx:afterSettle', () => {reset(state)}, false);
+        }, false);
+    }
+
+    function reset(state: State): void {
+        console.log("reset start");
+
+        state.letters = [];
+        state.inputs = document.querySelectorAll(".focusable");
+
+        console.log("reset end", state);
     }
 
     function initalThemeHandler() {
@@ -68,46 +92,38 @@
 
     }
 
-    function initKeyListener(): void {
-        let state: State = {
-            letters: [],
-        };
-    
-        const inputs: NodeListOf<HTMLInputElement> =
-            document.querySelectorAll(".focusable");
-    
+    function initKeyListener(state: State): void {
         document.addEventListener('keyup', (e: KeyboardEvent) => {
             console.log("keyup event, code:", e.code, " / e.key", e.key, " / e.key.charCodeAt(0)", e.key.charCodeAt(0));
 
             const isSingleKey = e.key.length === 1
             const isInAllowedKeyRange = (65 <= e.key.charCodeAt(0) && e.key.charCodeAt(0) <= 122)
-            const inputRowIsFillable = state.letters.length < inputs.length
+            const inputRowIsFillable = state.letters.length < state.inputs.length
             if (isSingleKey && isInAllowedKeyRange && inputRowIsFillable) {
                 state.letters.push(e.key);
-                updateInput(state, inputs);
+                updateInput(state);
             }
 
             if (e.key === "Backspace" || e.key === "Delete") {
                 state.letters.pop();
-                updateInput(state, inputs);
+                updateInput(state);
             }
     
-            // console.log("nodes: ", inputs);
+            console.log("keyup state: ", state);
         });
-
-        //TODO: listen htmx.AfterSwap... + uptate state etc....
     }
 
-    function updateInput(state: State, inputs: NodeListOf<HTMLInputElement>): void {
-        inputs.forEach((input: HTMLInputElement, index: number) => {
-            inputs[index].value = state.letters[index] ?? '';
+    function updateInput(state: State): void {
+        console.log("updateInput", state);
+        state.inputs.forEach((input: HTMLInputElement, index: number) => {
+            state.inputs[index].value = state.letters[index] ?? '';
 
             if (state.letters.length === 0) {
-                inputs[0].focus()
-            } else if (state.letters.length === inputs.length) {
-                inputs[state.letters.length-1].focus();
-            } else if (state.letters.length <= inputs.length) {
-                inputs[state.letters.length].focus();
+                state.inputs[0].focus()
+            } else if (state.letters.length === state.inputs.length) {
+                state.inputs[state.letters.length-1].focus();
+            } else if (state.letters.length <= state.inputs.length) {
+                state.inputs[state.letters.length].focus();
             }
         });
     }
