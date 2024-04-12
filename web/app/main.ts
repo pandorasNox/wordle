@@ -1,16 +1,12 @@
 // IIFE (Immediately Invoked Function Expression) / Self-Executing Anonymous Function
 (function () {
-
-    console.log("main.ts was executed")
-
     type State = {
         letters: Array<string>
     }
 
     function main(): void {
         initalThemeHandler();
-        themeButtonToggleHandler();
-
+        document.addEventListener('DOMContentLoaded', themeButtonToggleHandler, false);
         document.addEventListener('DOMContentLoaded', initKeyListener, false);
     }
 
@@ -43,7 +39,6 @@
         }
 
         themeToggleBtn.addEventListener('click', function() {
-
             // toggle icons inside button
             themeToggleDarkIcon.classList.toggle('hidden');
             themeToggleLightIcon.classList.toggle('hidden');
@@ -92,7 +87,7 @@
                 updateInput(state, inputs);
             }
 
-            if (e.key === "Backspace") {
+            if (e.key === "Backspace" || e.key === "Delete") {
                 state.letters.pop();
                 updateInput(state, inputs);
             }
