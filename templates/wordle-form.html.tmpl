@@ -12,7 +12,7 @@
           <div class="grid grid-cols-5 gap-2">
             {{ if .Data }}
               {{ $canWrite := false }}
-              {{ $hasWrite := false }}
+              {{ $hasWrite := .IsSolved }}
               {{ range $ri, $rowGuess := .Data.Guesses }}
                 {{ range $li, $letterGuess := $rowGuess }}
                   {{ $hasValue := and (ne $letterGuess.Letter 0) (ne $letterGuess.Letter 65533) }}
