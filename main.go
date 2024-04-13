@@ -140,6 +140,24 @@ func (w wordle) activeRow() uint8 {
 	return uint8(len(w.Guesses))
 }
 
+func (w wordle) isSolved() bool {
+	if w.activeRow() > 0 {
+		return w.Guesses[w.activeRow()-1].isSolved()
+	}
+
+	return false
+}
+
+func (w wordle) isLoose() bool {
+	for _, wg := range w.Guesses {
+		if !wg.isFilled() || wg.isSolved() {
+			return false
+		}
+	}
+
+	return true
+}
+
 type wordGuess [5]letterGuess
 
 func (wg wordGuess) isFilled() bool {
@@ -176,6 +194,7 @@ type FormData struct {
 	Data                  wordle
 	Errors                map[string]string
 	IsSolved              bool
+	IsLoose               bool
 	JSCachePurgeTimestamp int64
 }
 
@@ -246,10 +265,8 @@ func main() {
 
 		fData := FormData{}.New()
 		fData.Data = wo
-
-		if wo.activeRow() > 0 {
-			fData.IsSolved = wo.Guesses[wo.activeRow()-1].isSolved()
-		}
+		fData.IsSolved = wo.isSolved()
+		fData.IsLoose = wo.isLoose()
 
 		err := t.Execute(w, fData)
 		if err != nil {
@@ -297,10 +314,8 @@ func main() {
 
 		fData := FormData{}.New()
 		fData.Data = wo
-
-		if wo.activeRow() > 0 {
-			fData.IsSolved = wo.Guesses[wo.activeRow()-1].isSolved()
-		}
+		fData.IsSolved = wo.isSolved()
+		fData.IsLoose = wo.isLoose()
 
 		err = t.ExecuteTemplate(w, "wordle-form", fData)
 		if err != nil {
