@@ -323,6 +323,28 @@ func main() {
 		}
 	})
 
+	mux.HandleFunc("POST /new", func(w http.ResponseWriter, r *http.Request) {
+		s := handleSession(w, r, &sessions)
+
+		wo := wordle{}
+
+		s.lastEvaluatedAttempt = wo
+		s.activeSolutionWord = generateSession().activeSolutionWord
+		sessions.updateOrSet(s)
+
+		wo.Debug = s.activeSolutionWord.String()
+
+		fData := FormData{}.New()
+		fData.Data = wo
+		fData.IsSolved = wo.isSolved()
+		fData.IsLoose = wo.isLoose()
+
+		err = t.ExecuteTemplate(w, "wordle-form", fData)
+		if err != nil {
+			log.Printf("error t.ExecuteTemplate '/new' route: %s", err)
+		}
+	})
+
 	counter := counterState{count: 0}
 	mux.HandleFunc("POST /counter", func(w http.ResponseWriter, req *http.Request) {
 		// handleSession(w, req, &sessions)
