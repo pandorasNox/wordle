@@ -1,4 +1,9 @@
 declare var htmx: any;
+
+interface CustomHtmxEvent<T = any> extends Event {
+    detail?: T;
+}
+
 // IIFE (Immediately Invoked Function Expression) / Self-Executing Anonymous Function
 (function () {
     type State = {
@@ -9,8 +14,6 @@ declare var htmx: any;
     function main(): void {
         initalThemeHandler();
         document.addEventListener('DOMContentLoaded', function() {
-            console.log('dom loaded');
-
             const inputs: NodeListOf<HTMLInputElement> =
                 document.querySelectorAll(".focusable");
 
@@ -21,17 +24,17 @@ declare var htmx: any;
 
             themeButtonToggleHandler();
             initKeyListener(state);
-            document.addEventListener('htmx:afterSettle', () => {reset(state)}, false);
+            document.addEventListener('htmx:afterSettle', (event: CustomHtmxEvent) => {reset(state, event)}, false);
         }, false);
     }
 
-    function reset(state: State): void {
-        console.log("reset start");
+    function reset(state: State, event: CustomHtmxEvent): void {
+        if ((event?.detail?.xhr?.status ?? 200) === 422) {
+            return;
+        }
 
         state.letters = [];
         state.inputs = document.querySelectorAll(".focusable");
-
-        console.log("reset end", state);
     }
 
     function initalThemeHandler() {
@@ -94,8 +97,6 @@ declare var htmx: any;
 
     function initKeyListener(state: State): void {
         document.addEventListener('keyup', (e: KeyboardEvent) => {
-            console.log("keyup event, code:", e.code, " / e.key", e.key, " / e.key.charCodeAt(0)", e.key.charCodeAt(0));
-
             const isSingleKey = e.key.length === 1
             const isInAllowedKeyRange = (65 <= e.key.charCodeAt(0) && e.key.charCodeAt(0) <= 122)
             const inputRowIsFillable = state.letters.length < state.inputs.length
@@ -108,13 +109,10 @@ declare var htmx: any;
                 state.letters.pop();
                 updateInput(state);
             }
-    
-            console.log("keyup state: ", state);
         });
     }
 
     function updateInput(state: State): void {
-        console.log("updateInput", state);
         state.inputs.forEach((input: HTMLInputElement, index: number) => {
             state.inputs[index].value = state.letters[index] ?? '';
 
