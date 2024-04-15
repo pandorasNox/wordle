@@ -232,6 +232,20 @@ func Test_evaluateGuessedWord(t *testing.T) {
 				{'r', letterHitOrMiss{Some: false, Exact: false}}, // both false bec we already found it or even already guesst the exact match
 			},
 		},
+		{
+			name: "guessed word contains duplicats at end",
+			args: args{
+				[]string{"I", "X", "I", "I", "I"},
+				word{'L', 'X', 'I', 'I', 'I'},
+			},
+			want: wordGuess{
+				{'i', letterHitOrMiss{Some: false, Exact: false}},
+				{'x', letterHitOrMiss{Some: true, Exact: true}},
+				{'i', letterHitOrMiss{Some: true, Exact: true}},
+				{'i', letterHitOrMiss{Some: true, Exact: true}},
+				{'i', letterHitOrMiss{Some: true, Exact: true}},
+			},
+		},
 		// {
 		// 	name: "target word contains duplicats / guessed word contains duplicats",
 		// 	args: args{
