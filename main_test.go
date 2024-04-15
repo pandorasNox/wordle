@@ -28,7 +28,7 @@ func Test_constructCookie(t *testing.T) {
 		// add test cases here
 		{
 			"test_name",
-			args{session{fixedUuid, expireDate, SESSION_MAX_AGE_IN_SECONDS, wordleWord{}, wordle{}}},
+			args{session{fixedUuid, expireDate, SESSION_MAX_AGE_IN_SECONDS, word{}, puzzle{}}},
 			http.Cookie{
 				Name:     SESSION_COOKIE_NAME,
 				Value:    fixedUuid,
@@ -66,9 +66,9 @@ func Test_handleSession(t *testing.T) {
 	patches := gomonkey.ApplyFuncReturn(uuid.NewString, "12345678-abcd-1234-abcd-ab1234567890")
 	defer patches.Reset()
 
-	patchFnPickRandomWord := func() (wordleWord, error) {
-		// return wordleWord{'P', 'A', 'T', 'C', 'H'}, nil
-		return wordleWord{'R', 'O', 'A', 'T', 'E'}, nil
+	patchFnPickRandomWord := func() (word, error) {
+		// return word{'P', 'A', 'T', 'C', 'H'}, nil
+		return word{'R', 'O', 'A', 'T', 'E'}, nil
 	}
 	patchesPickRandomWord := gomonkey.ApplyFunc(pickRandomWord, patchFnPickRandomWord)
 	defer patchesPickRandomWord.Reset()
@@ -93,7 +93,7 @@ func Test_handleSession(t *testing.T) {
 				id:                 "12345678-abcd-1234-abcd-ab1234567890",
 				expiresAt:          time.Unix(1615256178, 0).Add(SESSION_MAX_AGE_IN_SECONDS * time.Second),
 				maxAgeSeconds:      120,
-				activeSolutionWord: wordleWord{'R', 'O', 'A', 'T', 'E'},
+				activeSolutionWord: word{'R', 'O', 'A', 'T', 'E'},
 			},
 		},
 		// {
@@ -104,7 +104,7 @@ func Test_handleSession(t *testing.T) {
 		// 		id:            "12345678-abcd-1234-abcd-ab1234567890",
 		// 		expiresAt:     time.Unix(1615256178, 0).Add(SESSION_MAX_AGE_IN_SECONDS * time.Second),
 		// 		maxAgeSeconds: 120,
-		// 		activeWord:    wordleWord{'R','O','A','T','E'},
+		// 		activeWord:    word{'R','O','A','T','E'},
 		// 	},
 		// },
 	}
@@ -128,32 +128,32 @@ func Test_handleSession(t *testing.T) {
 
 func Test_parseForm(t *testing.T) {
 	type args struct {
-		wo           wordle
+		p            puzzle
 		form         url.Values
-		solutionWord wordleWord
+		solutionWord word
 	}
 	tests := []struct {
 		name    string
 		args    args
-		want    wordle
+		want    puzzle
 		wantErr bool
 	}{
 		// TODO: Add test cases.
 		{
 			name: "no hits, neither same or exact",
-			// args: args{wordle{}, url.Values{}, wordleWord{'M', 'I', 'S', 'S', 'S'}},
-			args:    args{wordle{}, url.Values{"r0": []string{}}, wordleWord{'M', 'I', 'S', 'S', 'S'}},
-			want:    wordle{},
+			// args: args{puzzle{}, url.Values{}, word{'M', 'I', 'S', 'S', 'S'}},
+			args:    args{puzzle{}, url.Values{"r0": []string{}}, word{'M', 'I', 'S', 'S', 'S'}},
+			want:    puzzle{},
 			wantErr: false,
 		},
 		{
 			name: "full exact match",
 			args: args{
-				wordle{},
+				puzzle{},
 				url.Values{"r0": []string{"M", "A", "T", "C", "H"}},
-				wordleWord{'M', 'A', 'T', 'C', 'H'},
+				word{'M', 'A', 'T', 'C', 'H'},
 			},
-			want: wordle{"", [6]wordGuess{
+			want: puzzle{"", [6]wordGuess{
 				{
 					{'m', letterHitOrMiss{true, true}},
 					{'a', letterHitOrMiss{true, true}},
@@ -167,7 +167,7 @@ func Test_parseForm(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			if got, err := parseForm(tt.args.wo, tt.args.form, tt.args.solutionWord); !reflect.DeepEqual(got, tt.want) || (err != nil) != tt.wantErr {
+			if got, err := parseForm(tt.args.p, tt.args.form, tt.args.solutionWord); !reflect.DeepEqual(got, tt.want) || (err != nil) != tt.wantErr {
 				t.Errorf("parseForm() = %v, %v; want %v, %v", got, err != nil, tt.want, tt.wantErr)
 			}
 		})
@@ -177,7 +177,7 @@ func Test_parseForm(t *testing.T) {
 func Test_evaluateGuessedWord(t *testing.T) {
 	type args struct {
 		guessedWord  []string
-		solutionWord wordleWord
+		solutionWord word
 	}
 	tests := []struct {
 		name string
@@ -187,14 +187,14 @@ func Test_evaluateGuessedWord(t *testing.T) {
 		// test cases
 		{
 			name: "no hits, neither same or exact",
-			args: args{[]string{}, wordleWord{'M', 'I', 'S', 'S', 'S'}},
+			args: args{[]string{}, word{'M', 'I', 'S', 'S', 'S'}},
 			want: wordGuess{},
 		},
 		{
 			name: "full exact match",
 			args: args{
 				[]string{"M", "A", "T", "C", "H"},
-				wordleWord{'M', 'A', 'T', 'C', 'H'},
+				word{'M', 'A', 'T', 'C', 'H'},
 			},
 			want: wordGuess{
 				{'m', letterHitOrMiss{true, true}},
@@ -208,7 +208,7 @@ func Test_evaluateGuessedWord(t *testing.T) {
 			name: "partial exact and partial some match",
 			args: args{
 				[]string{"R", "A", "U", "L", "O"},
-				wordleWord{'R', 'O', 'A', 'T', 'E'},
+				word{'R', 'O', 'A', 'T', 'E'},
 			},
 			want: wordGuess{
 				{'r', letterHitOrMiss{Some: true, Exact: true}},
@@ -222,7 +222,7 @@ func Test_evaluateGuessedWord(t *testing.T) {
 			name: "guessed word contains duplicats",
 			args: args{
 				[]string{"R", "O", "T", "O", "R"},
-				wordleWord{'R', 'O', 'A', 'T', 'E'},
+				word{'R', 'O', 'A', 'T', 'E'},
 			},
 			want: wordGuess{
 				{'r', letterHitOrMiss{Some: true, Exact: true}},
@@ -235,11 +235,11 @@ func Test_evaluateGuessedWord(t *testing.T) {
 		// {
 		// 	name: "target word contains duplicats / guessed word contains duplicats",
 		// 	args: args{
-		// 		wordle{},
+		// 		puzzle{},
 		// 		url.Values{"r0c0": []string{"M"}, "r0c1": []string{"A"}, "r0c2": []string{"T"}, "r0c3": []string{"C"}, "r0c4": []string{"H"}},
-		// 		wordleWord{'M', 'A', 'T', 'C', 'H'},
+		// 		word{'M', 'A', 'T', 'C', 'H'},
 		// 	},
-		// 	want: wordle{"", [6][5]wordleLetter{
+		// 	want: puzzle{"", wordGuess{
 		// 		{
 		// 			{'r', letterHitOrMiss{true, true}},
 		// 			{'o', letterHitOrMiss{true, true}},

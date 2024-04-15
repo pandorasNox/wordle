@@ -56,8 +56,8 @@ type session struct {
 	id                   string
 	expiresAt            time.Time
 	maxAgeSeconds        int
-	activeSolutionWord   wordleWord
-	lastEvaluatedAttempt wordle
+	activeSolutionWord   word
+	lastEvaluatedAttempt puzzle
 }
 
 type sessions []session
@@ -83,9 +83,9 @@ func (ss *sessions) updateOrSet(sess session) {
 	(*ss)[index] = sess
 }
 
-type wordleWord [5]rune
+type word [5]rune
 
-func (w wordleWord) String() string {
+func (w word) String() string {
 	out := ""
 	for _, v := range w {
 		out += string(v)
@@ -94,7 +94,7 @@ func (w wordleWord) String() string {
 	return out
 }
 
-func (w wordleWord) contains(letter rune) bool {
+func (w word) contains(letter rune) bool {
 	found := false
 	for _, v := range w {
 		if v == letter {
@@ -106,7 +106,7 @@ func (w wordleWord) contains(letter rune) bool {
 	return found
 }
 
-func (w wordleWord) count(letter rune) int {
+func (w word) count(letter rune) int {
 	count := 0
 	for _, v := range w {
 		if v == letter {
@@ -117,7 +117,7 @@ func (w wordleWord) count(letter rune) int {
 	return count
 }
 
-func (w wordleWord) ToLower() wordleWord {
+func (w word) ToLower() word {
 	for i, v := range w {
 		w[i] = unicode.ToLower(v)
 	}
@@ -125,31 +125,31 @@ func (w wordleWord) ToLower() wordleWord {
 	return w
 }
 
-type wordle struct {
+type puzzle struct {
 	Debug   string
 	Guesses [6]wordGuess
 }
 
-func (w wordle) activeRow() uint8 {
-	for i, wg := range w.Guesses {
+func (p puzzle) activeRow() uint8 {
+	for i, wg := range p.Guesses {
 		if !wg.isFilled() {
 			return uint8(i)
 		}
 	}
 
-	return uint8(len(w.Guesses))
+	return uint8(len(p.Guesses))
 }
 
-func (w wordle) isSolved() bool {
-	if w.activeRow() > 0 {
-		return w.Guesses[w.activeRow()-1].isSolved()
+func (p puzzle) isSolved() bool {
+	if p.activeRow() > 0 {
+		return p.Guesses[p.activeRow()-1].isSolved()
 	}
 
 	return false
 }
 
-func (w wordle) isLoose() bool {
-	for _, wg := range w.Guesses {
+func (p puzzle) isLoose() bool {
+	for _, wg := range p.Guesses {
 		if !wg.isFilled() || wg.isSolved() {
 			return false
 		}
@@ -191,7 +191,7 @@ type letterHitOrMiss struct {
 }
 
 type FormData struct {
-	Data                  wordle
+	Data                  puzzle
 	Errors                map[string]string
 	IsSolved              bool
 	IsLoose               bool
@@ -200,7 +200,7 @@ type FormData struct {
 
 func (fd FormData) New() FormData {
 	return FormData{
-		Data:                  wordle{},
+		Data:                  puzzle{},
 		Errors:                make(map[string]string),
 		JSCachePurgeTimestamp: time.Now().Unix(),
 	}
@@ -237,7 +237,7 @@ func main() {
 	log.Println("staring server...")
 	log.Printf("env conf:\n%s", envCfg)
 
-	t := template.Must(template.ParseFS(fs, "templates/index.html.tmpl", "templates/wordle-form.html.tmpl"))
+	t := template.Must(template.ParseFS(fs, "templates/index.html.tmpl", "templates/lettr-form.html.tmpl"))
 
 	mux := http.NewServeMux()
 
@@ -274,7 +274,7 @@ func main() {
 		}
 	})
 
-	mux.HandleFunc("POST /wordle", func(w http.ResponseWriter, r *http.Request) {
+	mux.HandleFunc("POST /lettr", func(w http.ResponseWriter, r *http.Request) {
 		s := handleSession(w, r, &sessions)
 
 		// b, err := io.ReadAll(r.Body)
@@ -293,7 +293,7 @@ func main() {
 		wo := s.lastEvaluatedAttempt
 		wo.Debug = s.activeSolutionWord.String()
 
-		// log.Printf("debug '/wordle' route - row compare: activeRow='%d' / formRowCount='%d' \n", s.lastEvaluatedAttempt.activeRow(), countFilledFormRows(r.PostForm))
+		// log.Printf("debug '/lettr' route - row compare: activeRow='%d' / formRowCount='%d' \n", s.lastEvaluatedAttempt.activeRow(), countFilledFormRows(r.PostForm))
 		if s.lastEvaluatedAttempt.activeRow() != countFilledFormRows(r.PostForm)-1 {
 			w.Header().Add("HX-Retarget", "#any-errors")
 			w.WriteHeader(422)
@@ -317,29 +317,29 @@ func main() {
 		fData.IsSolved = wo.isSolved()
 		fData.IsLoose = wo.isLoose()
 
-		err = t.ExecuteTemplate(w, "wordle-form", fData)
+		err = t.ExecuteTemplate(w, "lettr-form", fData)
 		if err != nil {
-			log.Printf("error t.ExecuteTemplate '/wordle' route: %s", err)
+			log.Printf("error t.ExecuteTemplate '/lettr' route: %s", err)
 		}
 	})
 
 	mux.HandleFunc("POST /new", func(w http.ResponseWriter, r *http.Request) {
 		s := handleSession(w, r, &sessions)
 
-		wo := wordle{}
+		p := puzzle{}
 
-		s.lastEvaluatedAttempt = wo
+		s.lastEvaluatedAttempt = p
 		s.activeSolutionWord = generateSession().activeSolutionWord
 		sessions.updateOrSet(s)
 
-		wo.Debug = s.activeSolutionWord.String()
+		p.Debug = s.activeSolutionWord.String()
 
 		fData := FormData{}.New()
-		fData.Data = wo
-		fData.IsSolved = wo.isSolved()
-		fData.IsLoose = wo.isLoose()
+		fData.Data = p
+		fData.IsSolved = p.isSolved()
+		fData.IsLoose = p.isLoose()
 
-		err = t.ExecuteTemplate(w, "wordle-form", fData)
+		err = t.ExecuteTemplate(w, "lettr-form", fData)
 		if err != nil {
 			log.Printf("error t.ExecuteTemplate '/new' route: %s", err)
 		}
@@ -435,26 +435,26 @@ func generateSession() session { //todo: pass it by ref not by copy?
 	if err != nil {
 		log.Printf("pick random word failed: %s", err)
 
-		activeWord = wordleWord{'R', 'O', 'A', 'T', 'E'}
+		activeWord = word{'R', 'O', 'A', 'T', 'E'}
 	}
 
-	return session{id, expiresAt, SESSION_MAX_AGE_IN_SECONDS, activeWord, wordle{}}
+	return session{id, expiresAt, SESSION_MAX_AGE_IN_SECONDS, activeWord, puzzle{}}
 }
 
 func generateSessionLifetime() time.Time {
 	return time.Now().Add(SESSION_MAX_AGE_IN_SECONDS * time.Second) // todo: 24 hour, sec now only for testing
 }
 
-func pickRandomWord() (wordleWord, error) {
+func pickRandomWord() (word, error) {
 	f, err := fs.Open("configs/en-en.words.v1.test.txt")
 	if err != nil {
-		return wordleWord{}, fmt.Errorf("pick random word failed when opening file: %s", err)
+		return word{}, fmt.Errorf("pick random word failed when opening file: %s", err)
 	}
 	defer f.Close()
 
 	lineCount, err := lineCounter(f)
 	if err != nil {
-		return wordleWord{}, fmt.Errorf("pick random word failed when reading line count: %s", err)
+		return word{}, fmt.Errorf("pick random word failed when reading line count: %s", err)
 	}
 
 	randsource := rand.NewSource(time.Now().UnixNano())
@@ -465,7 +465,7 @@ func pickRandomWord() (wordleWord, error) {
 
 	fc, err := fs.Open("configs/en-en.words.v1.test.txt")
 	if err != nil {
-		return wordleWord{}, fmt.Errorf("pick random word failed when opening file: %s", err)
+		return word{}, fmt.Errorf("pick random word failed when opening file: %s", err)
 	}
 	defer fc.Close()
 	scanner := bufio.NewScanner(fc)
@@ -482,12 +482,12 @@ func pickRandomWord() (wordleWord, error) {
 		line++
 	}
 	if err := scanner.Err(); err != nil {
-		return wordleWord{}, fmt.Errorf("pick random word failed with: %s", err)
+		return word{}, fmt.Errorf("pick random word failed with: %s", err)
 	}
 
 	rollWordRuneSlice := []rune(rollWord)
 
-	pickedWord := wordleWord{}             //initialized an empty array
+	pickedWord := word{}                   //initialized an empty array
 	copy(pickedWord[:], rollWordRuneSlice) //copy the elements of sl
 
 	log.Printf("pickedWord: '%s'", pickedWord)
@@ -524,19 +524,16 @@ func lineCounter(r io.Reader) (int, error) {
 	return count, nil
 }
 
-func countFilledFormRows(postWordleForm url.Values) uint8 {
+func countFilledFormRows(postPuzzleForm url.Values) uint8 {
 	isfilled := func(row []string) bool {
 		emptyButWithLen := make([]string, len(row)) // we need empty slice but with right elem length
 		return !(slices.Compare(row, emptyButWithLen) == 0)
 	}
 
-	// log.Printf("  debug: postWordleFilledRowsCount form: %v \n", postWordleForm)
-
 	var count uint8 = 0
-	l := len(postWordleForm)
+	l := len(postPuzzleForm)
 	for i := 0; i < l; i++ {
-		guessedWord, ok := postWordleForm[fmt.Sprintf("r%d", i)]
-		// log.Printf("    debug: postWordleFilledRowsCount guessedWord: %v \n", guessedWord)
+		guessedWord, ok := postPuzzleForm[fmt.Sprintf("r%d", i)]
 		if ok && isfilled(guessedWord) {
 			count++
 		}
@@ -545,13 +542,13 @@ func countFilledFormRows(postWordleForm url.Values) uint8 {
 	return count
 }
 
-func parseForm(wo wordle, form url.Values, solutionWord wordleWord) (wordle, error) {
+func parseForm(p puzzle, form url.Values, solutionWord word) (puzzle, error) {
 
 	// log.Println("")
 	// log.Printf("parseForm() var solutionWord:'%v'\n", solutionWord)
 	// log.Println("")
 
-	for ri := range wo.Guesses {
+	for ri := range p.Guesses {
 		// log.Println("")
 		// log.Printf("parseForm() var form:%v\n", form)
 		// log.Println("")
@@ -569,18 +566,18 @@ func parseForm(wo wordle, form url.Values, solutionWord wordleWord) (wordle, err
 		// log.Println("")
 
 		if slices.Compare(Map(guessedWord, strings.ToLower), []string{"x", "x", "x", "x", "x"}) == 0 {
-			return wo, ErrNotInWordList
+			return p, ErrNotInWordList
 		}
 
 		wg := evaluateGuessedWord(guessedWord, solutionWord)
 
-		wo.Guesses[ri] = wg
+		p.Guesses[ri] = wg
 	}
 
-	return wo, nil
+	return p, nil
 }
 
-func evaluateGuessedWord(guessedWord []string, solutionWord wordleWord) wordGuess {
+func evaluateGuessedWord(guessedWord []string, solutionWord word) wordGuess {
 	solutionWord = solutionWord.ToLower()
 	guessedLetterCountMap := make(map[rune]int)
 

@@ -34,8 +34,8 @@ Options:
 
 # -----------------------------------------------------------------------------
 
-DEVTOOLS_IMG_NAME=wordle_dev_tools
-CLI_CONTAINER_NAME=wordle_cli_con
+DEVTOOLS_IMG_NAME=lettr_dev_tools
+CLI_CONTAINER_NAME=lettr_cli_con
 
 func_cli() {
   CONTAINER_NAME=${CLI_CONTAINER_NAME}

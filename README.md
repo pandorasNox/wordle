@@ -1,4 +1,4 @@
-# wordle
+# lettr
 
 ## known issues
 * If server restarts while playing, the next guess will end in a "fake rows" error. Resolved by reloading the page.
