@@ -6,6 +6,7 @@ import (
 	"io"
 	"log"
 	"net/http"
+	"os"
 	"strings"
 	"time"
 )
@@ -58,6 +59,15 @@ func main() {
 	fmt.Printf("len(all5LetterWords):\n%d\n", len(all5LetterWords))
 	fmt.Println("")
 	fmt.Printf("all5LetterWords:\n%v\n", all5LetterWords)
+
+	out := ""
+	for _, w := range all5LetterWords {
+		out += w + "\n"
+	}
+	err := os.WriteFile("/tmp/dat1", []byte(out), 0644)
+	if err != nil {
+		log.Fatalf("failed writing file: %s", &err)
+	}
 }
 
 func fetch(url string) (body []byte) {

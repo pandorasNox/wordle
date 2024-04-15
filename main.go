@@ -446,7 +446,9 @@ func generateSessionLifetime() time.Time {
 }
 
 func pickRandomWord() (word, error) {
-	f, err := fs.Open("configs/en-en.words.v1.test.txt")
+	filePath := "configs/en-en.words.v2.txt"
+
+	f, err := fs.Open(filePath)
 	if err != nil {
 		return word{}, fmt.Errorf("pick random word failed when opening file: %s", err)
 	}
@@ -463,7 +465,7 @@ func pickRandomWord() (word, error) {
 
 	log.Printf("linecount: %d, roll: %d", lineCount, rolledLine)
 
-	fc, err := fs.Open("configs/en-en.words.v1.test.txt")
+	fc, err := fs.Open(filePath)
 	if err != nil {
 		return word{}, fmt.Errorf("pick random word failed when opening file: %s", err)
 	}
