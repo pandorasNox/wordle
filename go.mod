@@ -1,4 +1,4 @@
-module github.com/pandorasNox/wordle
+module github.com/pandorasNox/lettr
 
 go 1.22.0
 
