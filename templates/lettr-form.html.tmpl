@@ -9,7 +9,7 @@
       >
           <div id="any-errors"></div>
           <h1>{{ .Data.Debug }}</h1>
-          <div class="grid grid-cols-5 gap-2">
+          <div class="grid grid-cols-5 gap-1">
             {{ if .Data }}
               {{ $canWrite := false }}
               {{ $hasWrite := .IsSolved }}
@@ -32,7 +32,7 @@
                         {{ if $canWrite }}focusable{{ end }}
 
                         {{ if and (not $letterGuess.HitOrMiss.Exact) (not $letterGuess.HitOrMiss.Some) }}
-                        bg-gray-50
+                        bg-gray-100
                         dark:bg-gray-700
                         {{ else if $letterGuess.HitOrMiss.Exact }}
                         bg-green-400
@@ -45,8 +45,7 @@
                         caret-transparent
                         capitalize
 
-                        border-2
-                        rounded-md
+                        rounded
                         border-gray-400
                         dark:border-gray-600
 
