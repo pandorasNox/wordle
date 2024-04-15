@@ -14,7 +14,7 @@
 * [80%] input validation (check matches) – requires: allowed word list, generated/current word, input of last word, number of tries
 * [ ] trigger like quiz win/fail – requires: number of tries
 * [ ] refactoring
-    * [ ] rename wordle to `lettr` bec of trademark
+    * [x] rename wordle to `lettr` bec of trademark
     * [ ] session handling
     * [ ] use packages instead of everythiung in one file
 * [ ] check out https://github.com/torenware/vite-go
