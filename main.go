@@ -588,15 +588,26 @@ func evaluateGuessedWord(guessedWord []string, solutionWord word) wordGuess {
 	for i := range guessedWord {
 		gr, _ := utf8.DecodeRuneInString(strings.ToLower(guessedWord[i]))
 
-		some := solutionWord.contains(gr)
 		exact := solutionWord[i] == gr
 
-		if some {
+		if exact {
+			guessedLetterCountMap[gr]++
+		}
+
+		resultWordGuess[i] = letterGuess{gr, letterHitOrMiss{exact, exact}}
+	}
+
+	for i := range guessedWord {
+		gr, _ := utf8.DecodeRuneInString(strings.ToLower(guessedWord[i]))
+
+		some := solutionWord.contains(gr)
+
+		if !resultWordGuess[i].HitOrMiss.Some || some {
 			guessedLetterCountMap[gr]++
 		}
 
 		s := some && (guessedLetterCountMap[gr] <= solutionWord.count(gr))
-		resultWordGuess[i] = letterGuess{gr, letterHitOrMiss{s, exact}}
+		resultWordGuess[i].HitOrMiss.Some = s || resultWordGuess[i].HitOrMiss.Exact
 	}
 
 	return resultWordGuess
