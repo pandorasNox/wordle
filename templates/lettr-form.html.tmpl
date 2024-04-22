@@ -8,7 +8,10 @@
         {{ if .IsSolved }}inert{{ end }}
       >
           <div id="any-errors"></div>
-          <h1>{{ .Data.Debug }}</h1>
+          <p class="group">
+            <button class="">show solution</button>
+            <span class="invisible opacity-0 group-hover:opacity-100 group-hover:visible">{{ .Data.Debug }}</span>
+          </p>
           <div class="grid grid-cols-5 gap-1">
             {{ if .Data }}
               {{ $canWrite := false }}
