@@ -545,29 +545,18 @@ func countFilledFormRows(postPuzzleForm url.Values) uint8 {
 }
 
 func parseForm(p puzzle, form url.Values, solutionWord word) (puzzle, error) {
-
-	// log.Println("")
-	// log.Printf("parseForm() var solutionWord:'%v'\n", solutionWord)
-	// log.Println("")
-
 	for ri := range p.Guesses {
-		// log.Println("")
-		// log.Printf("parseForm() var form:%v\n", form)
-		// log.Println("")
-
-		guessedWord, ok := form[fmt.Sprintf("r%d", ri)]
+		maybeGuessedWord, ok := form[fmt.Sprintf("r%d", ri)]
 		if !ok {
-			// log.Println("")
-			// log.Printf("continue map: r%d\n", ri)
-			// log.Println("")
 			continue
 		}
 
-		// log.Println("")
-		// log.Println("parseForm() var guessedWord:", guessedWord)
-		// log.Println("")
+		guessedWord, err := sliceToWord(maybeGuessedWord)
+		if err != nil {
+			return p, fmt.Errorf("parseForm could not create guessedWord from form input: %s", err.Error())
+		}
 
-		if slices.Compare(Map(guessedWord, strings.ToLower), []string{"x", "x", "x", "x", "x"}) == 0 {
+		if guessedWord == (word{'x', 'x', 'x', 'x', 'x'}) {
 			return p, ErrNotInWordList
 		}
 
@@ -579,15 +568,30 @@ func parseForm(p puzzle, form url.Values, solutionWord word) (puzzle, error) {
 	return p, nil
 }
 
-func evaluateGuessedWord(guessedWord []string, solutionWord word) wordGuess {
+func sliceToWord(maybeGuessedWord []string) (word, error) {
+	w := word{}
+
+	if len(maybeGuessedWord) != len(w) {
+		return word{}, fmt.Errorf("sliceToWord: provided slice does not match word length")
+	}
+
+	for i, l := range maybeGuessedWord {
+		w[i], _ = utf8.DecodeRuneInString(strings.ToLower(l))
+		if w[i] == 65533 {
+			w[i] = 0
+		}
+	}
+
+	return w, nil
+}
+
+func evaluateGuessedWord(guessedWord word, solutionWord word) wordGuess {
 	solutionWord = solutionWord.ToLower()
 	guessedLetterCountMap := make(map[rune]int)
 
 	resultWordGuess := wordGuess{}
 
-	for i := range guessedWord {
-		gr, _ := utf8.DecodeRuneInString(strings.ToLower(guessedWord[i]))
-
+	for i, gr := range guessedWord {
 		exact := solutionWord[i] == gr
 
 		if exact {
@@ -597,9 +601,7 @@ func evaluateGuessedWord(guessedWord []string, solutionWord word) wordGuess {
 		resultWordGuess[i] = letterGuess{gr, letterHitOrMiss{exact, exact}}
 	}
 
-	for i := range guessedWord {
-		gr, _ := utf8.DecodeRuneInString(strings.ToLower(guessedWord[i]))
-
+	for i, gr := range guessedWord {
 		some := solutionWord.contains(gr)
 
 		if !resultWordGuess[i].HitOrMiss.Some || some {

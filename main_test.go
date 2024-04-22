@@ -142,7 +142,7 @@ func Test_parseForm(t *testing.T) {
 		{
 			name: "no hits, neither same or exact",
 			// args: args{puzzle{}, url.Values{}, word{'M', 'I', 'S', 'S', 'S'}},
-			args:    args{puzzle{}, url.Values{"r0": []string{}}, word{'M', 'I', 'S', 'S', 'S'}},
+			args:    args{puzzle{}, url.Values{"r0": make([]string,5)}, word{'M', 'I', 'S', 'S', 'S'}},
 			want:    puzzle{},
 			wantErr: false,
 		},
@@ -176,7 +176,7 @@ func Test_parseForm(t *testing.T) {
 
 func Test_evaluateGuessedWord(t *testing.T) {
 	type args struct {
-		guessedWord  []string
+		guessedWord  word
 		solutionWord word
 	}
 	tests := []struct {
@@ -187,13 +187,13 @@ func Test_evaluateGuessedWord(t *testing.T) {
 		// test cases
 		{
 			name: "no hits, neither same or exact",
-			args: args{[]string{}, word{'M', 'I', 'S', 'S', 'S'}},
+			args: args{word{}, word{'M', 'I', 'S', 'S', 'S'}},
 			want: wordGuess{},
 		},
 		{
 			name: "full exact match",
 			args: args{
-				[]string{"M", "A", "T", "C", "H"},
+				word{'m', 'a', 't', 'c', 'h'},
 				word{'M', 'A', 'T', 'C', 'H'},
 			},
 			want: wordGuess{
@@ -207,7 +207,7 @@ func Test_evaluateGuessedWord(t *testing.T) {
 		{
 			name: "partial exact and partial some match",
 			args: args{
-				[]string{"R", "A", "U", "L", "O"},
+				word{'r', 'a', 'u', 'l', 'o'},
 				word{'R', 'O', 'A', 'T', 'E'},
 			},
 			want: wordGuess{
@@ -221,7 +221,7 @@ func Test_evaluateGuessedWord(t *testing.T) {
 		{
 			name: "guessed word contains duplicats",
 			args: args{
-				[]string{"R", "O", "T", "O", "R"},
+				word{'r', 'o', 't', 'o', 'r'},
 				word{'R', 'O', 'A', 'T', 'E'},
 			},
 			want: wordGuess{
@@ -235,7 +235,7 @@ func Test_evaluateGuessedWord(t *testing.T) {
 		{
 			name: "guessed word contains duplicats at end",
 			args: args{
-				[]string{"I", "X", "I", "I", "I"},
+				word{'i', 'x', 'i', 'i', 'i'},
 				word{'L', 'X', 'I', 'I', 'I'},
 			},
 			want: wordGuess{
@@ -249,7 +249,7 @@ func Test_evaluateGuessedWord(t *testing.T) {
 		{
 			name: "guessed word contains duplicats at end fpp",
 			args: args{
-				guessedWord: []string{"L", "I", "I", "I", "I"},
+				guessedWord:  word{'l', 'i', 'i', 'i', 'i'},
 				solutionWord: word{'I', 'L', 'X', 'I', 'I'},
 			},
 			want: wordGuess{
