@@ -213,6 +213,7 @@ type FormData struct {
 	IsSolved              bool
 	IsLoose               bool
 	JSCachePurgeTimestamp int64
+	Language              language
 }
 
 func (fd FormData) New() FormData {
@@ -220,6 +221,7 @@ func (fd FormData) New() FormData {
 		Data:                  puzzle{},
 		Errors:                make(map[string]string),
 		JSCachePurgeTimestamp: time.Now().Unix(),
+		Language:              LANG_EN,
 	}
 }
 
@@ -284,6 +286,7 @@ func main() {
 		fData.Data = wo
 		fData.IsSolved = wo.isSolved()
 		fData.IsLoose = wo.isLoose()
+		fData.Language = sess.language
 
 		err := t.Execute(w, fData)
 		if err != nil {
@@ -333,6 +336,7 @@ func main() {
 		fData.Data = wo
 		fData.IsSolved = wo.isSolved()
 		fData.IsLoose = wo.isLoose()
+		fData.Language = s.language
 
 		err = t.ExecuteTemplate(w, "lettr-form", fData)
 		if err != nil {
@@ -363,8 +367,10 @@ func main() {
 		fData.Data = p
 		fData.IsSolved = p.isSolved()
 		fData.IsLoose = p.isLoose()
+		fData.Language = s.language
 
-		err = t.ExecuteTemplate(w, "lettr-form", fData)
+		w.Header().Add("HX-Refresh", "true")
+		err = t.Execute(w, fData)
 		if err != nil {
 			log.Printf("error t.ExecuteTemplate '/new' route: %s", err)
 		}
