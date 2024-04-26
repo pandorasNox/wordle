@@ -28,7 +28,7 @@ func Test_constructCookie(t *testing.T) {
 		// add test cases here
 		{
 			"test_name",
-			args{session{fixedUuid, expireDate, SESSION_MAX_AGE_IN_SECONDS, word{}, puzzle{}}},
+			args{session{fixedUuid, expireDate, SESSION_MAX_AGE_IN_SECONDS, LANG_EN, word{}, puzzle{}}},
 			http.Cookie{
 				Name:     SESSION_COOKIE_NAME,
 				Value:    fixedUuid,
@@ -93,6 +93,7 @@ func Test_handleSession(t *testing.T) {
 				id:                 "12345678-abcd-1234-abcd-ab1234567890",
 				expiresAt:          time.Unix(1615256178, 0).Add(SESSION_MAX_AGE_IN_SECONDS * time.Second),
 				maxAgeSeconds:      120,
+				language:           LANG_EN,
 				activeSolutionWord: word{'R', 'O', 'A', 'T', 'E'},
 			},
 		},
@@ -142,7 +143,7 @@ func Test_parseForm(t *testing.T) {
 		{
 			name: "no hits, neither same or exact",
 			// args: args{puzzle{}, url.Values{}, word{'M', 'I', 'S', 'S', 'S'}},
-			args:    args{puzzle{}, url.Values{"r0": make([]string,5)}, word{'M', 'I', 'S', 'S', 'S'}},
+			args:    args{puzzle{}, url.Values{"r0": make([]string, 5)}, word{'M', 'I', 'S', 'S', 'S'}},
 			want:    puzzle{},
 			wantErr: false,
 		},

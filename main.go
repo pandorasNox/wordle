@@ -56,6 +56,7 @@ type session struct {
 	id                   string
 	expiresAt            time.Time
 	maxAgeSeconds        int
+	language             language
 	activeSolutionWord   word
 	lastEvaluatedAttempt puzzle
 }
@@ -82,6 +83,22 @@ func (ss *sessions) updateOrSet(sess session) {
 
 	(*ss)[index] = sess
 }
+
+type language string
+
+func NewLang(maybeLang string) (language, error) {
+	switch language(maybeLang) {
+	case LANG_EN, LANG_DE:
+		return language(maybeLang), nil
+	default:
+		return LANG_EN, fmt.Errorf("couldn't create new language from given value: '%s'", maybeLang)
+	}
+}
+
+const (
+	LANG_EN language = "en"
+	LANG_DE language = "de"
+)
 
 type word [5]rune
 
@@ -326,10 +343,18 @@ func main() {
 	mux.HandleFunc("POST /new", func(w http.ResponseWriter, r *http.Request) {
 		s := handleSession(w, r, &sessions)
 
+		// handle lang switch
+		l := s.language
+		maybeLang := r.FormValue("lang")
+		if maybeLang != "" {
+			l, _ = NewLang(maybeLang)
+			s.language = l
+		}
+
 		p := puzzle{}
 
 		s.lastEvaluatedAttempt = p
-		s.activeSolutionWord = generateSession().activeSolutionWord
+		s.activeSolutionWord = generateSession(l).activeSolutionWord
 		sessions.updateOrSet(s)
 
 		p.Debug = s.activeSolutionWord.String()
@@ -408,7 +433,7 @@ func handleSession(w http.ResponseWriter, req *http.Request, sessions *sessions)
 }
 
 func newSession(w http.ResponseWriter, sessions *sessions) session {
-	sess := generateSession()
+	sess := generateSession(LANG_EN)
 	*sessions = append(*sessions, sess)
 	c := constructCookie(sess)
 	http.SetCookie(w, &c)
@@ -428,25 +453,25 @@ func constructCookie(s session) http.Cookie {
 	}
 }
 
-func generateSession() session { //todo: pass it by ref not by copy?
+func generateSession(lang language) session { //todo: pass it by ref not by copy?
 	id := uuid.NewString()
 	expiresAt := generateSessionLifetime()
-	activeWord, err := pickRandomWord()
+	activeWord, err := pickRandomWord(lang)
 	if err != nil {
 		log.Printf("pick random word failed: %s", err)
 
 		activeWord = word{'R', 'O', 'A', 'T', 'E'}
 	}
 
-	return session{id, expiresAt, SESSION_MAX_AGE_IN_SECONDS, activeWord, puzzle{}}
+	return session{id, expiresAt, SESSION_MAX_AGE_IN_SECONDS, lang, activeWord, puzzle{}}
 }
 
 func generateSessionLifetime() time.Time {
 	return time.Now().Add(SESSION_MAX_AGE_IN_SECONDS * time.Second) // todo: 24 hour, sec now only for testing
 }
 
-func pickRandomWord() (word, error) {
-	filePath := "configs/en-en.words.v2.txt"
+func pickRandomWord(lang language) (word, error) {
+	filePath := fmt.Sprintf("configs/%s-%s.words.v2.txt", lang, lang)
 
 	f, err := fs.Open(filePath)
 	if err != nil {
