@@ -288,7 +288,7 @@ func main() {
 		fData.IsLoose = wo.isLoose()
 		fData.Language = sess.language
 
-		err := t.Execute(w, fData)
+		err := t.ExecuteTemplate(w, "index.html.tmpl", fData)
 		if err != nil {
 			log.Printf("error t.Execute '/' route: %s", err)
 		}
@@ -370,7 +370,7 @@ func main() {
 		fData.Language = s.language
 
 		w.Header().Add("HX-Refresh", "true")
-		err = t.Execute(w, fData)
+		err := t.ExecuteTemplate(w, "index.html.tmpl", fData)
 		if err != nil {
 			log.Printf("error t.ExecuteTemplate '/new' route: %s", err)
 		}
