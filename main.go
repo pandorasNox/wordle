@@ -353,6 +353,17 @@ func main() {
 		if maybeLang != "" {
 			l, _ = NewLang(maybeLang)
 			s.language = l
+
+			data := struct {
+				Language language
+			}{
+				Language: l,
+			}
+
+			err := t.ExecuteTemplate(w, "oob-lang-switch", data)
+			if err != nil {
+				log.Printf("error t.ExecuteTemplate '/new' route: %s", err)
+			}
 		}
 
 		p := puzzle{}
@@ -369,8 +380,8 @@ func main() {
 		fData.IsLoose = p.isLoose()
 		fData.Language = s.language
 
-		w.Header().Add("HX-Refresh", "true")
-		err := t.ExecuteTemplate(w, "index.html.tmpl", fData)
+		// w.Header().Add("HX-Refresh", "true")
+		err := t.ExecuteTemplate(w, "lettr-form", fData)
 		if err != nil {
 			log.Printf("error t.ExecuteTemplate '/new' route: %s", err)
 		}
@@ -477,6 +488,7 @@ func generateSessionLifetime() time.Time {
 }
 
 func pickRandomWord(lang language) (word, error) {
+	log.Printf("pickRandomWord lang: '%s'", lang)
 	filePath := fmt.Sprintf("configs/%s-%s.words.v2.txt", lang, lang)
 
 	f, err := fs.Open(filePath)
