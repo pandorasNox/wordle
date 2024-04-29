@@ -35,13 +35,14 @@ Options:
 # -----------------------------------------------------------------------------
 
 DEVTOOLS_IMG_NAME=lettr_dev_tools
+PROD_IMG_NAME=lettr_prod
 CLI_CONTAINER_NAME=lettr_cli_con
 
 func_cli() {
   CONTAINER_NAME=${CLI_CONTAINER_NAME}
 
   if ! (docker ps --format "{{.Names}}" | grep "${CONTAINER_NAME}"); then
-    func_build_devtools_img "${DEVTOOLS_IMG_NAME}"
+    func_build_img --img-name="${DEVTOOLS_IMG_NAME}" --target=builder-and-dev;
 
     func_start_idle_container "${DEVTOOLS_IMG_NAME}" "${CONTAINER_NAME}"
   fi
@@ -49,26 +50,39 @@ func_cli() {
   docker exec -it ${CONTAINER_NAME} ash
 }
 
-func_build_devtools_img() {
-  IMG_NAME=${1:?"first param missing, which is expected to be a chosen image name"}
+func_build_img() {
+  # handle flags, see https://stackoverflow.com/a/22395652
+  while test $# -gt 0 ; do
+    # options with arguments
+    case "$1" in
+    --img-name=*) IMG_NAME="${1##--img-name=}" ; shift; continue; break ;;
+    --target=*) TARGET="${1##--target=}" ; shift; continue; break ;;
+    esac
+
+    # unknown - up to you - positional argument or error?
+    echo "Unknown option $1"
+    shift
+  done
+
+  IMG_NAME=${IMG_NAME:?"--img-name flag is missing, usage: --img-name=a-name"}
+  TARGET=${TARGET:?"--target flag is missing, usage: --target=a-build-target"}
 
   docker build \
     -t "${IMG_NAME}" \
     -f container-images/app/Dockerfile \
-    --target "builder-and-dev" \
+    --target "${TARGET}" \
     .
 
   printf '%s' "${IMG_NAME}"
 }
 
 func_start_prod() {
-    func_build_devtools_img "${DEVTOOLS_IMG_NAME}";
+    func_build_img --img-name="${PROD_IMG_NAME}" --target=prod;
 
     docker run --rm \
-      -d \
       -e PORT="${APP_PORT}" \
       -p 9033:${APP_PORT} \
-      ${DEVTOOLS_IMG_NAME}
+      ${PROD_IMG_NAME}
 }
 
 func_start_idle_container() {
@@ -87,7 +101,7 @@ func_start_idle_container() {
 }
 
 func_watch() {
-  func_build_devtools_img "${DEVTOOLS_IMG_NAME}"
+  func_build_img --img-name="${DEVTOOLS_IMG_NAME}" --target=builder-and-dev;
 
   docker run -it --rm \
     -w "/workdir" \
@@ -102,7 +116,7 @@ func_exec_cli() {
   CONTAINER_NAME=${CLI_CONTAINER_NAME}
 
   if ! (docker ps --format "{{.Names}}" | grep "${CLI_CONTAINER_NAME}"); then
-    func_build_devtools_img "${DEVTOOLS_IMG_NAME}"
+    func_build_img --img-name="${DEVTOOLS_IMG_NAME}" --target=builder-and-dev;
 
     func_start_idle_container "${DEVTOOLS_IMG_NAME}" "${CONTAINER_NAME}"
   fi
@@ -122,7 +136,7 @@ func_typescript_build() {
   CONTAINER_NAME=${CLI_CONTAINER_NAME}
 
   if ! (docker ps --format "{{.Names}}" | grep "${CLI_CONTAINER_NAME}"); then
-    func_build_devtools_img "${DEVTOOLS_IMG_NAME}"
+    func_build_img --img-name="${DEVTOOLS_IMG_NAME}" --target=builder-and-dev;
 
     func_start_idle_container "${DEVTOOLS_IMG_NAME}" "${CONTAINER_NAME}"
   fi
@@ -168,7 +182,8 @@ else
 
     if [ $1 == "img" ]
     then
-      func_build_devtools_img "${DEVTOOLS_IMG_NAME}"
+      func_build_img --img-name="${DEVTOOLS_IMG_NAME}" --target=builder-and-dev;
+      func_build_img --img-name="${PROD_IMG_NAME}" --target=prod;
     fi
 
     if [ $1 == "tsc" ]
