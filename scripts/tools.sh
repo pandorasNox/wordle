@@ -43,7 +43,7 @@ func_cli() {
   if ! (docker ps --format "{{.Names}}" | grep "${CONTAINER_NAME}"); then
     func_build_devtools_img "${DEVTOOLS_IMG_NAME}"
 
-    func_start "${DEVTOOLS_IMG_NAME}" "${CONTAINER_NAME}"
+    func_start_idle_container "${DEVTOOLS_IMG_NAME}" "${CONTAINER_NAME}"
   fi
 
   docker exec -it ${CONTAINER_NAME} ash
@@ -54,20 +54,21 @@ func_build_devtools_img() {
 
   docker build \
     -t "${IMG_NAME}" \
-    -f container-images/dev-tools/Dockerfile \
+    -f container-images/app/Dockerfile \
     .
 
   printf '%s' "${IMG_NAME}"
 }
 
-func_start() {
+func_start_idle_container() {
   IMG_NAME=${1:?"first param missing, which is expected to be a chosen image name"}
   CONTAINER_NAME=${2:?"second param missing, which is expected to be a chosen container name"}
 
   if ! (docker ps --format "{{.Names}}" | grep "${CONTAINER_NAME}"); then
     docker run -d --rm \
       --name ${CONTAINER_NAME} \
-      -w "/workdir" -v "${PWD}":"/workdir" \
+      -w "/workdir" \
+      -v "${PWD}":"/workdir" \
       --entrypoint=ash \
       ${IMG_NAME} -c "while true; do sleep 2000000; done"
       # -v "${PWD}/tmp/local_go_dev_dir":"/go" \
@@ -78,20 +79,21 @@ func_watch() {
   func_build_devtools_img "${DEVTOOLS_IMG_NAME}"
 
   docker run -it --rm \
-    -w "/workdir" -v "${PWD}":"/workdir" \
+    -w "/workdir" \
+    -v "${PWD}":"/workdir" \
     -p "${APP_PORT}":"${APP_PORT}" \
     -e PORT="${APP_PORT}" \
     --entrypoint=ash \
-    "${DEVTOOLS_IMG_NAME}" -c "npm install; air --build.cmd 'npx tailwindcss --config web/app/tailwind.config.js --input web/app/css/input.css --output web/static/generated/output.css && npx tsc --project web/app/tsconfig.json && go build -buildvcs=false -o ./tmp/main' --build.bin './tmp/main' -build.include_ext 'go,tpl,tmpl,templ,html,js,ts,json' -build.exclude_dir 'assets,tmp,vendor,node_modules,web/static/generated'"
+    "${DEVTOOLS_IMG_NAME}" -c "cd ./web/; npm install; cd ..; air --build.cmd 'cd ./web/ && npx tailwindcss --config app/tailwind.config.js --input app/css/input.css --output static/generated/output.css && npx tsc --project app/tsconfig.json && cd .. && go build -buildvcs=false -o ./tmp/main' --build.bin './tmp/main' -build.include_ext 'go,tpl,tmpl,templ,html,js,ts,json' -build.exclude_dir 'assets,tmp,vendor,node_modules,web/static/generated'"
 }
 
-func_test() {
+func_exec_cli() {
   CONTAINER_NAME=${CLI_CONTAINER_NAME}
 
   if ! (docker ps --format "{{.Names}}" | grep "${CLI_CONTAINER_NAME}"); then
     func_build_devtools_img "${DEVTOOLS_IMG_NAME}"
 
-    func_start "${DEVTOOLS_IMG_NAME}" "${CONTAINER_NAME}"
+    func_start_idle_container "${DEVTOOLS_IMG_NAME}" "${CONTAINER_NAME}"
   fi
 
   docker exec -t ${CONTAINER_NAME} ash -c "$@"
@@ -111,10 +113,10 @@ func_typescript_build() {
   if ! (docker ps --format "{{.Names}}" | grep "${CLI_CONTAINER_NAME}"); then
     func_build_devtools_img "${DEVTOOLS_IMG_NAME}"
 
-    func_start "${DEVTOOLS_IMG_NAME}" "${CONTAINER_NAME}"
+    func_start_idle_container "${DEVTOOLS_IMG_NAME}" "${CONTAINER_NAME}"
   fi
 
-  docker exec -t ${CONTAINER_NAME} ash -ce "npm install; npx tsc --project web/app/tsconfig.json;"
+  docker exec -t ${CONTAINER_NAME} ash -ce "cd ./web/; npm install; npx tsc --project app/tsconfig.json;"
 }
 
 # -----------------------------------------------------------------------------
@@ -140,7 +142,7 @@ else
 
     if [ $1 == "test" ]
     then
-      func_test "go test ."
+      func_exec_cli "go test ."
     fi
 
     if [ $1 == "down" ]

@@ -3,7 +3,7 @@ module.exports = {
     // content: [],
     // content: ["/css/**/*.{html,js}"],
     // content: ["/templates/*"],
-    content: ["templates/**/*.{html,tmpl}"],
+    content: ["../templates/**/*.{html,tmpl}"],
     safelist: [
         // 'bg-red-500',
         // 'text-3xl',

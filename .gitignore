@@ -18,7 +18,7 @@
 # vendor/
 
 # Javascript files
-node_modules/
+web/node_modules/
 web/static/generated
 
 # Go workspace file
