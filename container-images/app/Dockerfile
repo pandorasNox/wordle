@@ -1,6 +1,6 @@
 FROM node:20.12.1-alpine3.19 AS node
 
-FROM golang:1.22-alpine AS builder
+FROM golang:1.22-alpine AS builder-and-dev
 
 ENV WORKDIR /workdir
 WORKDIR ${WORKDIR}
@@ -26,4 +26,29 @@ COPY --from=node /usr/local/bin /usr/local/bin
 COPY ./web/package*.json ${WORKDIR}/web/
 RUN set -eu; cd ${WORKDIR}/web/; npm install; cd ${WORKDIR}
 
+COPY ./go.mod ./go.mod
+COPY ./go.sum ./go.sum
+RUN go mod download
+
+COPY ./main.go ./main.go
+COPY ./configs ./configs
+COPY ./templates ./templates
+COPY ./web ./web
+
+RUN set -eu; \
+    cd ${WORKDIR}/web/; \
+    npx tailwindcss --config app/tailwind.config.js --input app/css/input.css --output static/generated/output.css; \
+    npx tsc --project app/tsconfig.json; \
+    cd ${WORKDIR}; \
+    go build -buildvcs=false -o /tmp/lettr;
+
 ENTRYPOINT ["/usr/bin/env", "ash"]
+
+# =============================================================
+
+FROM alpine:3.19 AS prod
+
+COPY --from=builder-and-dev /tmp/lettr /usr/local/bin/
+
+#CMD ["lettr"]
+ENTRYPOINT ["lettr"]

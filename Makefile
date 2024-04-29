@@ -26,3 +26,7 @@ img:
 .PHONY: tsc
 tsc:
 	./scripts/tools.sh tsc
+
+.PHONY: prod
+prod:
+	./scripts/tools.sh prod

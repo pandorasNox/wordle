@@ -55,9 +55,20 @@ func_build_devtools_img() {
   docker build \
     -t "${IMG_NAME}" \
     -f container-images/app/Dockerfile \
+    --target "builder-and-dev" \
     .
 
   printf '%s' "${IMG_NAME}"
+}
+
+func_start_prod() {
+    func_build_devtools_img "${DEVTOOLS_IMG_NAME}";
+
+    docker run --rm \
+      -d \
+      -e PORT="${APP_PORT}" \
+      -p 9033:${APP_PORT} \
+      ${DEVTOOLS_IMG_NAME}
 }
 
 func_start_idle_container() {
@@ -163,5 +174,10 @@ else
     if [ $1 == "tsc" ]
     then
       func_typescript_build
+    fi
+
+    if [ $1 == "prod" ]
+    then
+      func_start_prod
     fi
 fi
