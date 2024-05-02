@@ -225,6 +225,29 @@ func (fd FormData) New() FormData {
 	}
 }
 
+type wordDatabase struct {
+	db map[language]map[word]bool
+}
+
+func (wdb *wordDatabase) Init(filePathsByLanguage map[language]string) error {
+	wdb.db = make(map[language]map[word]bool)
+	for l, path := range filePathsByLanguage {
+		_ = path
+		t := make(map[word]bool)
+		wdb.db[l] = t
+	}
+
+	return nil
+}
+
+func (wdb wordDatabase) Exists(l language, w word) bool {
+	return false
+}
+
+func (wdb wordDatabase) RandomPick(l language) word {
+	return word{'R', 'O', 'A', 'T', 'E'}
+}
+
 func Map[T, U any](ts []T, f func(T) U) []U {
 	us := make([]U, len(ts))
 	for i := range ts {
