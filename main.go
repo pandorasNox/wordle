@@ -142,6 +142,26 @@ func (w word) ToLower() word {
 	return w
 }
 
+func toWord(wo string) (word, error) {
+	out := word{}
+
+	length := 0
+	for i, l := range wo {
+		length++
+		if length > len(out) {
+			return word{}, fmt.Errorf("string does not match allowed word length: length=%d, expectedLength=%d", length, len(out))
+		}
+
+		out[i] = l
+	}
+
+	if length < len(out) {
+		return word{}, fmt.Errorf("string is to short: length=%d, expectedLength=%d", length, len(out))
+	}
+
+	return out, nil
+}
+
 type puzzle struct {
 	Debug   string
 	Guesses [6]wordGuess
@@ -229,12 +249,49 @@ type wordDatabase struct {
 	db map[language]map[word]bool
 }
 
-func (wdb *wordDatabase) Init(filePathsByLanguage map[language]string) error {
+func (wdb *wordDatabase) Init(fs iofs.FS, filePathsByLanguage map[language]string) error {
 	wdb.db = make(map[language]map[word]bool)
+
 	for l, path := range filePathsByLanguage {
-		_ = path
-		t := make(map[word]bool)
-		wdb.db[l] = t
+		wdb.db[l] = make(map[word]bool)
+
+		f, err := fs.Open(path)
+		if err != nil {
+			return fmt.Errorf("wordDatabase init failed when opening file: %s", err)
+		}
+		defer f.Close()
+
+		fInfo, err := f.Stat()
+		if err != nil {
+			return fmt.Errorf("wordDatabase init failed when obtaining stat: %s", err)
+		}
+
+		var allowedSize int64 = 2 * 1024 * 1024 // 2 MB
+		if fInfo.Size() > allowedSize {
+			return fmt.Errorf("wordDatabase init failed with forbidden file size: path='%s', size='%d'", path, fInfo.Size())
+		}
+
+		scanner := bufio.NewScanner(f)
+		var line int = 0
+		for scanner.Scan() {
+			if line == 0 { // skip first metadata line
+				line++
+				continue
+			}
+
+			candidate := scanner.Text()
+			word, err := toWord(candidate)
+			if err != nil {
+				return fmt.Errorf("wordDatabase init, couldn't parse line to word: line='%s', err=%s", candidate, err)
+			}
+
+			wdb.db[l][word] = true
+
+			line++
+		}
+		if err := scanner.Err(); err != nil {
+			return fmt.Errorf("wordDatabase init failed scanning file with: path='%s', err=%s", path, err)
+		}
 	}
 
 	return nil
@@ -272,11 +329,25 @@ func getAllFilenames(efs iofs.FS) (files []string, err error) {
 	return files, nil
 }
 
+func filePathsByLang() map[language]string {
+	return map[language]string{
+		LANG_EN: "configs/en-en.words.v2.txt",
+		LANG_DE: "configs/de-de.words.v2.txt",
+	}
+}
+
 func main() {
+	log.Println("staring server...")
+
 	envCfg := envConfig()
 	sessions := sessions{}
 
-	log.Println("staring server...")
+	wordDb := wordDatabase{}
+	err := wordDb.Init(fs, filePathsByLang())
+	if err != nil {
+		log.Fatalf("init wordDatabase failed: %s", err)
+	}
+
 	log.Printf("env conf:\n%s", envCfg)
 
 	t := template.Must(template.ParseFS(fs, "templates/index.html.tmpl", "templates/lettr-form.html.tmpl"))
