@@ -11,6 +11,10 @@ watch:
 test:
 	./scripts/tools.sh test
 
+.PHONY: bench
+bench:
+	./scripts/tools.sh bench
+
 .PHONY: down
 down:
 	./scripts/tools.sh down
