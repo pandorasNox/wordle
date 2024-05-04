@@ -284,7 +284,7 @@ func (wdb *wordDatabase) Init(fs iofs.FS, filePathsByLanguage map[language]strin
 				return fmt.Errorf("wordDatabase init, couldn't parse line to word: line='%s', err=%s", candidate, err)
 			}
 
-			wdb.db[l][word] = true
+			wdb.db[l][word.ToLower()] = true
 
 			line++
 		}
@@ -302,7 +302,7 @@ func (wdb wordDatabase) Exists(l language, w word) bool {
 		return false
 	}
 
-	_, ok = db[w]
+	_, ok = db[w.ToLower()]
 	return ok
 }
 
@@ -318,7 +318,7 @@ func (wdb wordDatabase) RandomPick(l language) (word, error) {
 
 	currentLine := 0
 	for w := range db {
-		if (currentLine == rolledLine) {
+		if currentLine == rolledLine {
 			return w, nil
 		}
 
@@ -634,7 +634,7 @@ func parseForm(p puzzle, form url.Values, solutionWord word, l language, wdb wor
 			return p, fmt.Errorf("parseForm could not create guessedWord from form input: %s", err.Error())
 		}
 
-		if wdb.Exists(l, guessedWord){
+		if wdb.Exists(l, guessedWord) {
 			return p, ErrNotInWordList
 		}
 
