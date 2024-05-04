@@ -54,6 +54,7 @@ func Test_handleSession(t *testing.T) {
 		w        http.ResponseWriter
 		req      *http.Request
 		sessions *sessions
+		wdb      wordDatabase
 	}
 
 	// monkey patch time.Now
@@ -65,16 +66,6 @@ func Test_handleSession(t *testing.T) {
 	// monkey patch uuid.NewString
 	patches := gomonkey.ApplyFuncReturn(uuid.NewString, "12345678-abcd-1234-abcd-ab1234567890")
 	defer patches.Reset()
-
-	patchFnPickRandomWord := func() (word, error) {
-		// return word{'P', 'A', 'T', 'C', 'H'}, nil
-		return word{'R', 'O', 'A', 'T', 'E'}, nil
-	}
-	patchesPickRandomWord := gomonkey.ApplyFunc(pickRandomWord, patchFnPickRandomWord)
-	defer patchesPickRandomWord.Reset()
-
-	// recorder := httptest.NewRecorder()
-	// sess := sessions{}
 
 	tests := []struct {
 		name string
@@ -88,6 +79,11 @@ func Test_handleSession(t *testing.T) {
 				httptest.NewRecorder(),
 				httptest.NewRequest("get", "/", strings.NewReader("Hello, Reader!")),
 				&sessions{},
+				wordDatabase{db: map[language]map[word]bool{
+					LANG_EN: {
+						word{'R', 'O', 'A', 'T', 'E'}: true,
+					},
+				}},
 			},
 			session{
 				id:                 "12345678-abcd-1234-abcd-ab1234567890",
@@ -111,7 +107,7 @@ func Test_handleSession(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			if got := handleSession(tt.args.w, tt.args.req, tt.args.sessions); !reflect.DeepEqual(got, tt.want) {
+			if got := handleSession(tt.args.w, tt.args.req, tt.args.sessions, tt.args.wdb); !reflect.DeepEqual(got, tt.want) {
 				t.Errorf("handleSession() = %v, want %v", got, tt.want)
 			}
 		})
@@ -132,6 +128,8 @@ func Test_parseForm(t *testing.T) {
 		p            puzzle
 		form         url.Values
 		solutionWord word
+		language     language
+		wdb          wordDatabase
 	}
 	tests := []struct {
 		name    string
@@ -143,7 +141,17 @@ func Test_parseForm(t *testing.T) {
 		{
 			name: "no hits, neither same or exact",
 			// args: args{puzzle{}, url.Values{}, word{'M', 'I', 'S', 'S', 'S'}},
-			args:    args{puzzle{}, url.Values{"r0": make([]string, 5)}, word{'M', 'I', 'S', 'S', 'S'}},
+			args: args{
+				puzzle{},
+				url.Values{"r0": make([]string, 5)},
+				word{'M', 'I', 'S', 'S', 'S'},
+				LANG_EN,
+				wordDatabase{db: map[language]map[word]bool{
+					LANG_EN: {
+						word{'M', 'I', 'S', 'S', 'S'}: true,
+					},
+				}},
+			},
 			want:    puzzle{},
 			wantErr: false,
 		},
@@ -153,6 +161,12 @@ func Test_parseForm(t *testing.T) {
 				puzzle{},
 				url.Values{"r0": []string{"M", "A", "T", "C", "H"}},
 				word{'M', 'A', 'T', 'C', 'H'},
+				LANG_EN,
+				wordDatabase{db: map[language]map[word]bool{
+					LANG_EN: {
+						word{'M', 'A', 'T', 'C', 'H'}: true,
+					},
+				}},
 			},
 			want: puzzle{"", [6]wordGuess{
 				{
@@ -168,7 +182,7 @@ func Test_parseForm(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			if got, err := parseForm(tt.args.p, tt.args.form, tt.args.solutionWord); !reflect.DeepEqual(got, tt.want) || (err != nil) != tt.wantErr {
+			if got, err := parseForm(tt.args.p, tt.args.form, tt.args.solutionWord, tt.args.language, tt.args.wdb); !reflect.DeepEqual(got, tt.want) || (err != nil) != tt.wantErr {
 				t.Errorf("parseForm() = %v, %v; want %v, %v", got, err != nil, tt.want, tt.wantErr)
 			}
 		})

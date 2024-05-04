@@ -2,7 +2,6 @@ package main
 
 import (
 	"bufio"
-	"bytes"
 	"embed"
 	"errors"
 	"fmt"
@@ -298,11 +297,35 @@ func (wdb *wordDatabase) Init(fs iofs.FS, filePathsByLanguage map[language]strin
 }
 
 func (wdb wordDatabase) Exists(l language, w word) bool {
-	return false
+	db, ok := wdb.db[l]
+	if !ok {
+		return false
+	}
+
+	_, ok = db[w]
+	return ok
 }
 
-func (wdb wordDatabase) RandomPick(l language) word {
-	return word{'R', 'O', 'A', 'T', 'E'}
+func (wdb wordDatabase) RandomPick(l language) (word, error) {
+	db, ok := wdb.db[l]
+	if !ok {
+		return word{}, fmt.Errorf("RandomPick failed with unknown language: '%s'", l)
+	}
+
+	randsource := rand.NewSource(time.Now().UnixNano())
+	randgenerator := rand.New(randsource)
+	rolledLine := randgenerator.Intn(len(db))
+
+	currentLine := 0
+	for w := range db {
+		if (currentLine == rolledLine) {
+			return w, nil
+		}
+
+		currentLine++
+	}
+
+	return word{}, fmt.Errorf("RandomPick could not find random line aka this should never happen ^^")
 }
 
 func Map[T, U any](ts []T, f func(T) U) []U {
@@ -365,7 +388,7 @@ func main() {
 	)
 
 	mux.HandleFunc("GET /", func(w http.ResponseWriter, req *http.Request) {
-		sess := handleSession(w, req, &sessions)
+		sess := handleSession(w, req, &sessions, wordDb)
 
 		// io.WriteString(w, fmt.Sprintf("Hello, world!\n%s", sessions))
 		//io.WriteString(w, fmt.Sprintf("Hello, world! %s\n", session.id))
@@ -389,7 +412,7 @@ func main() {
 	})
 
 	mux.HandleFunc("POST /lettr", func(w http.ResponseWriter, r *http.Request) {
-		s := handleSession(w, r, &sessions)
+		s := handleSession(w, r, &sessions, wordDb)
 
 		// b, err := io.ReadAll(r.Body)
 		// if err != nil {
@@ -415,7 +438,7 @@ func main() {
 			return
 		}
 
-		wo, err = parseForm(wo, r.PostForm, s.activeSolutionWord)
+		wo, err = parseForm(wo, r.PostForm, s.activeSolutionWord, s.language, wordDb)
 		if err == ErrNotInWordList {
 			w.Header().Add("HX-Retarget", "#any-errors")
 			w.WriteHeader(422)
@@ -439,7 +462,7 @@ func main() {
 	})
 
 	mux.HandleFunc("POST /new", func(w http.ResponseWriter, r *http.Request) {
-		s := handleSession(w, r, &sessions)
+		s := handleSession(w, r, &sessions, wordDb)
 
 		// handle lang switch
 		l := s.language
@@ -463,7 +486,7 @@ func main() {
 		p := puzzle{}
 
 		s.lastEvaluatedAttempt = p
-		s.activeSolutionWord = generateSession(l).activeSolutionWord
+		s.activeSolutionWord = generateSession(l, wordDb).activeSolutionWord
 		sessions.updateOrSet(s)
 
 		p.Debug = s.activeSolutionWord.String()
@@ -511,17 +534,17 @@ func envConfig() env {
 	return env{port}
 }
 
-func handleSession(w http.ResponseWriter, req *http.Request, sessions *sessions) session {
+func handleSession(w http.ResponseWriter, req *http.Request, sessions *sessions, wdb wordDatabase) session {
 	var err error
 	var sess session
 
 	cookie, err := req.Cookie(SESSION_COOKIE_NAME)
 	if err != nil {
-		return newSession(w, sessions)
+		return newSession(w, sessions, wdb)
 	}
 
 	if cookie == nil {
-		return newSession(w, sessions)
+		return newSession(w, sessions, wdb)
 	}
 
 	sid := cookie.Value
@@ -529,7 +552,7 @@ func handleSession(w http.ResponseWriter, req *http.Request, sessions *sessions)
 		return s.id == sid
 	})
 	if i == -1 {
-		return newSession(w, sessions)
+		return newSession(w, sessions, wdb)
 	}
 
 	sess = (*sessions)[i]
@@ -543,8 +566,8 @@ func handleSession(w http.ResponseWriter, req *http.Request, sessions *sessions)
 	return sess
 }
 
-func newSession(w http.ResponseWriter, sessions *sessions) session {
-	sess := generateSession(LANG_EN)
+func newSession(w http.ResponseWriter, sessions *sessions, wdb wordDatabase) session {
+	sess := generateSession(LANG_EN, wdb)
 	*sessions = append(*sessions, sess)
 	c := constructCookie(sess)
 	http.SetCookie(w, &c)
@@ -564,10 +587,10 @@ func constructCookie(s session) http.Cookie {
 	}
 }
 
-func generateSession(lang language) session { //todo: pass it by ref not by copy?
+func generateSession(lang language, wdb wordDatabase) session { //todo: pass it by ref not by copy?
 	id := uuid.NewString()
 	expiresAt := generateSessionLifetime()
-	activeWord, err := pickRandomWord(lang)
+	activeWord, err := wdb.RandomPick(lang)
 	if err != nil {
 		log.Printf("pick random word failed: %s", err)
 
@@ -579,88 +602,6 @@ func generateSession(lang language) session { //todo: pass it by ref not by copy
 
 func generateSessionLifetime() time.Time {
 	return time.Now().Add(SESSION_MAX_AGE_IN_SECONDS * time.Second) // todo: 24 hour, sec now only for testing
-}
-
-func pickRandomWord(lang language) (word, error) {
-	log.Printf("pickRandomWord lang: '%s'", lang)
-	filePath := fmt.Sprintf("configs/%s-%s.words.v2.txt", lang, lang)
-
-	f, err := fs.Open(filePath)
-	if err != nil {
-		return word{}, fmt.Errorf("pick random word failed when opening file: %s", err)
-	}
-	defer f.Close()
-
-	lineCount, err := lineCounter(f)
-	if err != nil {
-		return word{}, fmt.Errorf("pick random word failed when reading line count: %s", err)
-	}
-
-	randsource := rand.NewSource(time.Now().UnixNano())
-	randgenerator := rand.New(randsource)
-	rolledLine := randgenerator.Intn(lineCount-1) + 1
-
-	log.Printf("linecount: %d, roll: %d", lineCount, rolledLine)
-
-	fc, err := fs.Open(filePath)
-	if err != nil {
-		return word{}, fmt.Errorf("pick random word failed when opening file: %s", err)
-	}
-	defer fc.Close()
-	scanner := bufio.NewScanner(fc)
-	var line int
-	var rollWord string
-	for scanner.Scan() {
-		if line == rolledLine {
-			log.Println("hit if")
-			log.Println(scanner.Text())
-			rollWord = scanner.Text()
-			log.Printf("rollWord: '%s'", rollWord)
-			break
-		}
-		line++
-	}
-	if err := scanner.Err(); err != nil {
-		return word{}, fmt.Errorf("pick random word failed with: %s", err)
-	}
-
-	rollWordRuneSlice := []rune(rollWord)
-
-	pickedWord := word{}                   //initialized an empty array
-	copy(pickedWord[:], rollWordRuneSlice) //copy the elements of sl
-
-	log.Printf("pickedWord: '%s'", pickedWord)
-
-	return pickedWord, nil
-}
-
-func lineCounter(r io.Reader) (int, error) {
-	var count int
-	const lineBreak = '\n'
-
-	buf := make([]byte, bufio.MaxScanTokenSize)
-
-	for {
-		bufferSize, err := r.Read(buf)
-		if err != nil && err != io.EOF {
-			return 0, err
-		}
-
-		var buffPosition int
-		for {
-			i := bytes.IndexByte(buf[buffPosition:], lineBreak)
-			if i == -1 || bufferSize == buffPosition {
-				break
-			}
-			buffPosition += i + 1
-			count++
-		}
-		if err == io.EOF {
-			break
-		}
-	}
-
-	return count, nil
 }
 
 func countFilledFormRows(postPuzzleForm url.Values) uint8 {
@@ -681,7 +622,7 @@ func countFilledFormRows(postPuzzleForm url.Values) uint8 {
 	return count
 }
 
-func parseForm(p puzzle, form url.Values, solutionWord word) (puzzle, error) {
+func parseForm(p puzzle, form url.Values, solutionWord word, l language, wdb wordDatabase) (puzzle, error) {
 	for ri := range p.Guesses {
 		maybeGuessedWord, ok := form[fmt.Sprintf("r%d", ri)]
 		if !ok {
@@ -693,7 +634,7 @@ func parseForm(p puzzle, form url.Values, solutionWord word) (puzzle, error) {
 			return p, fmt.Errorf("parseForm could not create guessedWord from form input: %s", err.Error())
 		}
 
-		if guessedWord == (word{'x', 'x', 'x', 'x', 'x'}) {
+		if wdb.Exists(l, guessedWord){
 			return p, ErrNotInWordList
 		}
 
