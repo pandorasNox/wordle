@@ -11,8 +11,8 @@
 ## quiz
 ### what happens on server side
 * [ ] word generation – requires: allowed word list, words to exclude (previous taken quizes)
-* [80%] input validation (check matches) – requires: allowed word list, generated/current word, input of last word, number of tries
-* [ ] trigger like quiz win/fail – requires: number of tries
+* [x] input validation (check matches) – requires: allowed word list, generated/current word, input of last word, number of tries
+* [x] trigger like quiz win/fail – requires: number of tries
 * [ ] refactoring
     * [x] rename wordle to `lettr` bec of trademark
     * [ ] session handling
