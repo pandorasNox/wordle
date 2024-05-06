@@ -148,7 +148,8 @@ func Test_parseForm(t *testing.T) {
 				LANG_EN,
 				wordDatabase{db: map[language]map[word]bool{
 					LANG_EN: {
-						word{'M', 'I', 'S', 'S', 'S'}: true,
+						word{'m', 'i', 's', 's', 's'}: true,
+						word{0, 0, 0, 0, 0}: true, // equals make([]string, 5)
 					},
 				}},
 			},
@@ -164,7 +165,7 @@ func Test_parseForm(t *testing.T) {
 				LANG_EN,
 				wordDatabase{db: map[language]map[word]bool{
 					LANG_EN: {
-						word{'M', 'A', 'T', 'C', 'H'}: true,
+						word{'m', 'a', 't', 'c', 'h'}: true,
 					},
 				}},
 			},

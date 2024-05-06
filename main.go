@@ -634,7 +634,7 @@ func parseForm(p puzzle, form url.Values, solutionWord word, l language, wdb wor
 			return p, fmt.Errorf("parseForm could not create guessedWord from form input: %s", err.Error())
 		}
 
-		if wdb.Exists(l, guessedWord) {
+		if !wdb.Exists(l, guessedWord) {
 			return p, ErrNotInWordList
 		}
 
