@@ -25,6 +25,7 @@ interface CustomHtmxEvent<T = any> extends Event {
             themeButtonToggleHandler();
             initKeyListener(state);
             document.addEventListener('htmx:afterSettle', (event: CustomHtmxEvent) => {reset(state, event)}, false);
+            document.addEventListener('htmx:afterSettle', (event: CustomHtmxEvent) => {onErrorMsg(event)}, false);
         }, false);
     }
 
@@ -35,6 +36,23 @@ interface CustomHtmxEvent<T = any> extends Event {
 
         state.letters = [];
         state.inputs = document.querySelectorAll(".focusable");
+    }
+
+    function onErrorMsg(event: CustomHtmxEvent): void {
+        if ((event?.detail?.xhr?.status ?? 200) !== 422) {
+            return;
+        }
+
+        const errorsElem = document.getElementById("any-errors");
+        if (errorsElem === null) {
+            console.error("couldn't get element by id:", "any-errors")
+            return
+        }
+
+        const intervalID = setInterval(function() {
+            errorsElem.innerHTML = "";
+            clearInterval(intervalID);
+        }, 2000);
     }
 
     function initalThemeHandler() {

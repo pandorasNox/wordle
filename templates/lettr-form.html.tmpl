@@ -7,7 +7,7 @@
         name="lettr" hx-post="/lettr" hx-target="#lettr-container" class="m-auto" hx-target-error="#any-errors"
         {{ if .IsSolved }}inert{{ end }}
       >
-          <div id="any-errors"></div>
+          <div id="any-errors" class="min-h-6 text-red-600 dark:text-red-400"></div>
           <p class="group">
             <button class="">show solution</button>
             <span class="invisible opacity-0 group-hover:opacity-100 group-hover:visible">{{ .Data.Debug }}</span>
