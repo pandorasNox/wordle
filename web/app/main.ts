@@ -27,6 +27,10 @@ interface CustomHtmxEvent<T = any> extends Event {
             document.addEventListener('htmx:afterSettle', (event: CustomHtmxEvent) => {reset(state, event)}, false);
             document.addEventListener('htmx:afterSettle', (event: CustomHtmxEvent) => {onErrorMsg(event)}, false);
         }, false);
+
+        // document.body.addEventListener('htmx:load', function(evt) {
+        //     myJavascriptLib.init(evt.detail.elt);
+        // });
     }
 
     function reset(state: State, event: CustomHtmxEvent): void {
