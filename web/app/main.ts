@@ -127,6 +127,21 @@ interface CustomHtmxEvent<T = any> extends Event {
                 state.letters.pop();
                 updateInput(state);
             }
+
+            // capture "Enter" in case focus is lost from FORM but give page global enter functionality, but also preserve original form submit
+            if (e.key === "Enter") {
+                const form = <HTMLFormElement|null>document.querySelector("#lettr-container form")
+                if (form === null) {
+                    return
+                }
+
+                const ae = document.activeElement
+                if ((ae === null ) || form.contains(ae)) {
+                    return
+                }
+
+                htmx.trigger("#lettr-container form", "submit");
+            }
         });
     }
 
