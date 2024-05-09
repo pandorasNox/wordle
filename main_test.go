@@ -142,14 +142,14 @@ func Test_parseForm(t *testing.T) {
 			name: "no hits, neither same or exact",
 			// args: args{puzzle{}, url.Values{}, word{'M', 'I', 'S', 'S', 'S'}},
 			args: args{
-				puzzle{},
-				url.Values{"r0": make([]string, 5)},
-				word{'M', 'I', 'S', 'S', 'S'},
-				LANG_EN,
-				wordDatabase{db: map[language]map[word]bool{
+				p:            puzzle{},
+				form:         url.Values{"r0": make([]string, 5)},
+				solutionWord: word{'M', 'I', 'S', 'S', 'S'},
+				language:     LANG_EN,
+				wdb: wordDatabase{db: map[language]map[word]bool{
 					LANG_EN: {
 						word{'m', 'i', 's', 's', 's'}: true,
-						word{0, 0, 0, 0, 0}: true, // equals make([]string, 5)
+						word{0, 0, 0, 0, 0}:           true, // equals make([]string, 5)
 					},
 				}},
 			},
@@ -159,11 +159,11 @@ func Test_parseForm(t *testing.T) {
 		{
 			name: "full exact match",
 			args: args{
-				puzzle{},
-				url.Values{"r0": []string{"M", "A", "T", "C", "H"}},
-				word{'M', 'A', 'T', 'C', 'H'},
-				LANG_EN,
-				wordDatabase{db: map[language]map[word]bool{
+				p:            puzzle{},
+				form:         url.Values{"r0": []string{"M", "A", "T", "C", "H"}},
+				solutionWord: word{'M', 'A', 'T', 'C', 'H'},
+				language:     LANG_EN,
+				wdb: wordDatabase{db: map[language]map[word]bool{
 					LANG_EN: {
 						word{'m', 'a', 't', 'c', 'h'}: true,
 					},
@@ -203,14 +203,17 @@ func Test_evaluateGuessedWord(t *testing.T) {
 		// test cases
 		{
 			name: "no hits, neither same or exact",
-			args: args{word{}, word{'M', 'I', 'S', 'S', 'S'}},
+			args: args{
+				guessedWord:  word{},
+				solutionWord: word{'M', 'I', 'S', 'S', 'S'},
+			},
 			want: wordGuess{},
 		},
 		{
 			name: "full exact match",
 			args: args{
-				word{'m', 'a', 't', 'c', 'h'},
-				word{'M', 'A', 'T', 'C', 'H'},
+				guessedWord:  word{'m', 'a', 't', 'c', 'h'},
+				solutionWord: word{'M', 'A', 'T', 'C', 'H'},
 			},
 			want: wordGuess{
 				{'m', letterHitOrMiss{true, true}},
@@ -223,8 +226,8 @@ func Test_evaluateGuessedWord(t *testing.T) {
 		{
 			name: "partial exact and partial some match",
 			args: args{
-				word{'r', 'a', 'u', 'l', 'o'},
-				word{'R', 'O', 'A', 'T', 'E'},
+				guessedWord:  word{'r', 'a', 'u', 'l', 'o'},
+				solutionWord: word{'R', 'O', 'A', 'T', 'E'},
 			},
 			want: wordGuess{
 				{'r', letterHitOrMiss{Some: true, Exact: true}},
@@ -237,8 +240,8 @@ func Test_evaluateGuessedWord(t *testing.T) {
 		{
 			name: "guessed word contains duplicats",
 			args: args{
-				word{'r', 'o', 't', 'o', 'r'},
-				word{'R', 'O', 'A', 'T', 'E'},
+				guessedWord:  word{'r', 'o', 't', 'o', 'r'},
+				solutionWord: word{'R', 'O', 'A', 'T', 'E'},
 			},
 			want: wordGuess{
 				{'r', letterHitOrMiss{Some: true, Exact: true}},
@@ -251,8 +254,8 @@ func Test_evaluateGuessedWord(t *testing.T) {
 		{
 			name: "guessed word contains duplicats at end",
 			args: args{
-				word{'i', 'x', 'i', 'i', 'i'},
-				word{'L', 'X', 'I', 'I', 'I'},
+				guessedWord:  word{'i', 'x', 'i', 'i', 'i'},
+				solutionWord: word{'L', 'X', 'I', 'I', 'I'},
 			},
 			want: wordGuess{
 				{'i', letterHitOrMiss{Some: false, Exact: false}},
