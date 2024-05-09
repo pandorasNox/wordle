@@ -10,7 +10,7 @@
 
 ## quiz
 ### what happens on server side
-* [ ] word generation – requires: allowed word list, words to exclude (previous taken quizes)
+* [80%] word generation – requires: allowed word list, words to exclude (previous taken quizes)
 * [x] input validation (check matches) – requires: allowed word list, generated/current word, input of last word, number of tries
 * [x] trigger like quiz win/fail – requires: number of tries
 * [ ] refactoring
@@ -19,3 +19,15 @@
     * [ ] use packages instead of everythiung in one file
 * [ ] check out https://github.com/torenware/vite-go
     * https://vitejs.dev/guide/backend-integration VS https://www.npmjs.com/package/webpack-assets-manifest
+
+## open todo
+- must
+    * [x] word not InWordDB
+    * [ ] website app version via ??? (assets? or on webpage?)
+    * [ ] (mobile) keyboard (use + indication for used letters)
+    * [ ] protect against request size
+    * [ ] fix scripts/tools.sh func_exec_cli passing parameter issue
+- nice-to-have
+    * [ ] get definition (e.g. wikitionary)
+    * [ ] hint feature / give me one letter
+    * [ ] ui languge should also change
