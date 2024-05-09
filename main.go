@@ -29,6 +29,7 @@ const SESSION_MAX_AGE_IN_SECONDS = 120
 
 //go:embed configs/*.txt
 //go:embed templates/*.html.tmpl
+//go:embed web/static/assets/*
 //go:embed web/static/generated/*.js
 //go:embed web/static/generated/*.css
 var fs embed.FS

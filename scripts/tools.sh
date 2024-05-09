@@ -109,7 +109,7 @@ func_watch() {
     -p "${APP_PORT}":"${APP_PORT}" \
     -e PORT="${APP_PORT}" \
     --entrypoint=ash \
-    "${DEVTOOLS_IMG_NAME}" -c "cd ./web/; npm install; cd ..; air --build.cmd 'cd ./web/ && npx tailwindcss --config app/tailwind.config.js --input app/css/input.css --output static/generated/output.css && npx tsc --project app/tsconfig.json && cd .. && go build -buildvcs=false -o ./tmp/main' --build.bin './tmp/main' -build.include_ext 'go,tpl,tmpl,templ,html,js,ts,json' -build.exclude_dir 'assets,tmp,vendor,web/node_modules,web/static/generated'"
+    "${DEVTOOLS_IMG_NAME}" -c "cd ./web/; npm install; cd ..; air --build.cmd 'cd ./web/ && npx tailwindcss --config app/tailwind.config.js --input app/css/input.css --output static/generated/output.css && npx tsc --project app/tsconfig.json && cd .. && go build -buildvcs=false -o ./tmp/main' --build.bin './tmp/main' -build.include_ext 'go,tpl,tmpl,templ,html,js,ts,json,png,ico,webmanifest' -build.exclude_dir 'assets,tmp,vendor,web/node_modules,web/static/generated'"
 }
 
 func_exec_cli() {
