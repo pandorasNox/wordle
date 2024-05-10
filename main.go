@@ -24,6 +24,8 @@ import (
 	"github.com/google/uuid"
 )
 
+var Revision = "0000000"
+
 const SESSION_COOKIE_NAME = "session"
 const SESSION_MAX_AGE_IN_SECONDS = 120
 
@@ -234,6 +236,7 @@ type FormData struct {
 	IsLoose               bool
 	JSCachePurgeTimestamp int64
 	Language              language
+	Revision              string
 }
 
 func (fd FormData) New() FormData {
@@ -242,6 +245,7 @@ func (fd FormData) New() FormData {
 		Errors:                make(map[string]string),
 		JSCachePurgeTimestamp: time.Now().Unix(),
 		Language:              LANG_EN,
+		Revision:              Revision,
 	}
 }
 

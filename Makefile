@@ -34,3 +34,7 @@ tsc:
 .PHONY: prod
 prod:
 	./scripts/tools.sh prod
+
+.PHONY: deploy
+deploy:
+	./scripts/tools.sh deploy

@@ -23,7 +23,7 @@
 ## open todo
 - must
     * [x] word not InWordDB
-    * [ ] website app version via ??? (assets? or on webpage?)
+    * [x] website app version via ??? (assets? or on webpage?)
     * [ ] (mobile) keyboard (use + indication for used letters)
     * [ ] protect against request size
     * [ ] fix scripts/tools.sh func_exec_cli passing parameter issue

@@ -71,6 +71,7 @@ func_build_img() {
     -t "${IMG_NAME}" \
     -f container-images/app/Dockerfile \
     --target "${TARGET}" \
+    --build-arg "GIT_REVISION=$(git rev-parse --verify --short HEAD)" \
     .
 
   printf '%s' "${IMG_NAME}"
@@ -109,7 +110,7 @@ func_watch() {
     -p "${APP_PORT}":"${APP_PORT}" \
     -e PORT="${APP_PORT}" \
     --entrypoint=ash \
-    "${DEVTOOLS_IMG_NAME}" -c "cd ./web/; npm install; cd ..; air --build.cmd 'cd ./web/ && npx tailwindcss --config app/tailwind.config.js --input app/css/input.css --output static/generated/output.css && npx tsc --project app/tsconfig.json && cd .. && go build -buildvcs=false -o ./tmp/main' --build.bin './tmp/main' -build.include_ext 'go,tpl,tmpl,templ,html,js,ts,json,png,ico,webmanifest' -build.exclude_dir 'assets,tmp,vendor,web/node_modules,web/static/generated'"
+    "${DEVTOOLS_IMG_NAME}" -c "cd ./web/; npm install; cd ..; air --build.cmd 'cd ./web/ && npx tailwindcss --config app/tailwind.config.js --input app/css/input.css --output static/generated/output.css && npx tsc --project app/tsconfig.json && cd .. && go build -buildvcs=false -ldflags=\"-X 'main.Revision=$(git rev-parse --verify --short HEAD)'\" -o ./tmp/main' --build.bin './tmp/main' -build.include_ext 'go,tpl,tmpl,templ,html,js,ts,json,png,ico,webmanifest' -build.exclude_dir 'assets,tmp,vendor,web/node_modules,web/static/generated'"
 }
 
 func_exec_cli() {
@@ -142,6 +143,10 @@ func_typescript_build() {
   fi
 
   docker exec -t ${CONTAINER_NAME} ash -ce "cd ./web/; npm install; npx tsc --project app/tsconfig.json;"
+}
+
+func_deploy() {
+  fly deploy --build-arg "GIT_REVISION=$(git rev-parse --verify --short HEAD)"
 }
 
 # -----------------------------------------------------------------------------
@@ -199,5 +204,10 @@ else
     if [ $1 == "prod" ]
     then
       func_start_prod
+    fi
+
+    if [ $1 == "deploy" ]
+    then
+      func_deploy
     fi
 fi

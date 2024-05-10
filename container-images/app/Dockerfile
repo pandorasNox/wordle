@@ -1,6 +1,10 @@
 FROM node:20.12.1-alpine3.19 AS node
 
+
 FROM golang:1.22-alpine AS builder-and-dev
+
+ARG GIT_REVISION=${GIT_REVISION}
+ENV GIT_REVISION=${GIT_REVISION}
 
 ENV WORKDIR /workdir
 WORKDIR ${WORKDIR}
@@ -40,7 +44,7 @@ RUN set -eu; \
     npx tailwindcss --config app/tailwind.config.js --input app/css/input.css --output static/generated/output.css; \
     npx tsc --project app/tsconfig.json; \
     cd ${WORKDIR}; \
-    go build -buildvcs=false -o /tmp/lettr;
+    go build -buildvcs=false -o /tmp/lettr -ldflags="-X 'main.Revision=${GIT_REVISION}'";
 
 ENTRYPOINT ["/usr/bin/env", "ash"]
 
