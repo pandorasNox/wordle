@@ -134,6 +134,11 @@ interface CustomHtmxEvent<T = any> extends Event {
 
             // capture "Enter" in case focus is lost from FORM but give page global enter functionality, but also preserve original form submit
             if (e.key === "Enter") {
+                const gameSolvedOrLost = state.inputs.length === 0
+                if (gameSolvedOrLost) {
+                    return
+                }
+
                 const form = <HTMLFormElement|null>document.querySelector("#lettr-container form")
                 if (form === null) {
                     return

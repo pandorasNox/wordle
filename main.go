@@ -435,6 +435,11 @@ func main() {
 		wo := s.lastEvaluatedAttempt
 		wo.Debug = s.activeSolutionWord.String()
 
+		if wo.isSolved() || wo.isLoose() {
+			w.WriteHeader(204)
+			return
+		}
+
 		// log.Printf("debug '/lettr' route - row compare: activeRow='%d' / formRowCount='%d' \n", s.lastEvaluatedAttempt.activeRow(), countFilledFormRows(r.PostForm))
 		if s.lastEvaluatedAttempt.activeRow() != countFilledFormRows(r.PostForm)-1 {
 			w.Header().Add("HX-Retarget", "#any-errors")
