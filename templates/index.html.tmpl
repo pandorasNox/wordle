@@ -5,12 +5,11 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
 
   <!-- favicon -->
-  <link rel="apple-touch-icon" sizes="180x180" href="/static/assets/favicon_prod/apple-touch-icon.png">
-  <link rel="icon" type="image/png" sizes="32x32" href="/static/assets/favicon_prod/favicon-32x32.png">
-  <link rel="icon" type="image/png" sizes="16x16" href="/static/assets/favicon_prod/favicon-16x16.png">
-  <link rel="manifest" href="/static/assets/favicon_prod/site.webmanifest">
+  <link rel="apple-touch-icon" sizes="180x180" href="{{ printf "%s" .FaviconPath }}/apple-touch-icon.png">
+  <link rel="icon" type="image/png" sizes="32x32" href="{{ printf "%s" .FaviconPath }}/favicon-32x32.png">
+  <link rel="icon" type="image/png" sizes="16x16" href="{{ printf "%s" .FaviconPath }}/favicon-16x16.png">
+  <link rel="manifest" href="{{ printf "%s" .FaviconPath }}/site.webmanifest">
 
-  <!-- <link href="https://unpkg.com/tailwindcss@^2/dist/tailwind.min.css" rel="stylesheet"> -->
   <link href="/static/generated/output.css?cachePurge={{ printf "%d" .JSCachePurgeTimestamp }}" rel="stylesheet">
 
   <script src="https://unpkg.com/htmx.org@1.9.10" integrity="sha384-D1Kt99CQMDuVetoL1lrYwg5t+9QdHe7NLX/SoJYkXDFfX37iInKRy5xLSi8nO7UC" crossorigin="anonymous"></script>

@@ -81,8 +81,8 @@ func_start_prod() {
     func_build_img --img-name="${PROD_IMG_NAME}" --target=prod;
 
     docker run --rm \
-      -e PORT="${APP_PORT}" \
-      -p 9033:${APP_PORT} \
+      -e PORT="9033" \
+      -p 9033:9033 \
       ${PROD_IMG_NAME}
 }
 
@@ -110,7 +110,7 @@ func_watch() {
     -p "${APP_PORT}":"${APP_PORT}" \
     -e PORT="${APP_PORT}" \
     --entrypoint=ash \
-    "${DEVTOOLS_IMG_NAME}" -c "cd ./web/; npm install; cd ..; air --build.cmd 'cd ./web/ && npx tailwindcss --config app/tailwind.config.js --input app/css/input.css --output static/generated/output.css && npx tsc --project app/tsconfig.json && cd .. && go build -buildvcs=false -ldflags=\"-X 'main.Revision=$(git rev-parse --verify --short HEAD)'\" -o ./tmp/main' --build.bin './tmp/main' -build.include_ext 'go,tpl,tmpl,templ,html,js,ts,json,png,ico,webmanifest' -build.exclude_dir 'assets,tmp,vendor,web/node_modules,web/static/generated'"
+    "${DEVTOOLS_IMG_NAME}" -c "cd ./web/; npm install; cd ..; air --build.cmd 'cd ./web/ && npx tailwindcss --config app/tailwind.config.js --input app/css/input.css --output static/generated/output.css && npx tsc --project app/tsconfig.json && cd .. && go build -buildvcs=false -ldflags=\"-X 'main.Revision=$(git rev-parse --verify --short HEAD)' -X 'main.FaviconPath=/static/assets/favicon_dev'\" -o ./tmp/main' --build.bin './tmp/main' -build.include_ext 'go,tpl,tmpl,templ,html,js,ts,json,png,ico,webmanifest' -build.exclude_dir 'assets,tmp,vendor,web/node_modules,web/static/generated'"
 }
 
 func_exec_cli() {

@@ -25,6 +25,7 @@ import (
 )
 
 var Revision = "0000000"
+var FaviconPath = "/static/assets/favicon"
 
 const SESSION_COOKIE_NAME = "session"
 const SESSION_MAX_AGE_IN_SECONDS = 120
@@ -237,6 +238,7 @@ type FormData struct {
 	JSCachePurgeTimestamp int64
 	Language              language
 	Revision              string
+	FaviconPath           string
 }
 
 func (fd FormData) New() FormData {
@@ -246,6 +248,7 @@ func (fd FormData) New() FormData {
 		JSCachePurgeTimestamp: time.Now().Unix(),
 		Language:              LANG_EN,
 		Revision:              Revision,
+		FaviconPath:           FaviconPath,
 	}
 }
 
