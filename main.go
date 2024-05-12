@@ -239,21 +239,42 @@ type FormData struct {
 	Language              language
 	Revision              string
 	FaviconPath           string
+	Keyboard              keyboard
 }
 
-func (fd FormData) New() FormData {
+func (fd FormData) New(l language) FormData {
+	kb := keyboard{}
+	kb.Init(l)
+
 	return FormData{
 		Data:                  puzzle{},
 		Errors:                make(map[string]string),
 		JSCachePurgeTimestamp: time.Now().Unix(),
-		Language:              LANG_EN,
+		Language:              l,
 		Revision:              Revision,
 		FaviconPath:           FaviconPath,
+		Keyboard:              kb,
 	}
 }
 
 type wordDatabase struct {
 	db map[language]map[word]bool
+}
+
+type keyboard struct {
+	KeyGrid [][]keyboardKey
+}
+
+func (k *keyboard) Init(l language) {
+	k.KeyGrid = [][]keyboardKey{
+		{{"Q"}, {"W"}, {"E"}, {"R"}, {"T"}, {"Y"}, {"U"}, {"I"}, {"O"}, {"P"}, {"Delete"}},
+		{{"A"}, {"S"}, {"D"}, {"F"}, {"G"}, {"H"}, {"J"}, {"K"}, {"L"}, {"Enter"}},
+		{{"Z"}, {"X"}, {"C"}, {"V"}, {"B"}, {"N"}, {"M"}},
+	}
+}
+
+type keyboardKey struct {
+	Key string
 }
 
 func (wdb *wordDatabase) Init(fs iofs.FS, filePathsByLanguage map[language]string) error {
@@ -407,11 +428,10 @@ func main() {
 		wo.Debug = sess.activeSolutionWord.String()
 		sessions.updateOrSet(sess)
 
-		fData := FormData{}.New()
+		fData := FormData{}.New(sess.language)
 		fData.Data = wo
 		fData.IsSolved = wo.isSolved()
 		fData.IsLoose = wo.isLoose()
-		fData.Language = sess.language
 
 		err := t.ExecuteTemplate(w, "index.html.tmpl", fData)
 		if err != nil {
@@ -462,11 +482,10 @@ func main() {
 		s.lastEvaluatedAttempt = wo
 		sessions.updateOrSet(s)
 
-		fData := FormData{}.New()
+		fData := FormData{}.New(s.language)
 		fData.Data = wo
 		fData.IsSolved = wo.isSolved()
 		fData.IsLoose = wo.isLoose()
-		fData.Language = s.language
 
 		err = t.ExecuteTemplate(w, "lettr-form", fData)
 		if err != nil {
@@ -504,11 +523,10 @@ func main() {
 
 		p.Debug = s.activeSolutionWord.String()
 
-		fData := FormData{}.New()
+		fData := FormData{}.New(s.language)
 		fData.Data = p
 		fData.IsSolved = p.isSolved()
 		fData.IsLoose = p.isLoose()
-		fData.Language = s.language
 
 		// w.Header().Add("HX-Refresh", "true")
 		err := t.ExecuteTemplate(w, "lettr-form", fData)
