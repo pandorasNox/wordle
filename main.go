@@ -212,7 +212,7 @@ func (wg wordGuess) isFilled() bool {
 
 func (wg wordGuess) isSolved() bool {
 	for _, lg := range wg {
-		if lg.HitOrMiss.Exact == false {
+		if lg.Match != MatchExact {
 			return false
 		}
 	}
@@ -221,14 +221,28 @@ func (wg wordGuess) isSolved() bool {
 }
 
 type letterGuess struct {
-	Letter    rune
-	HitOrMiss letterHitOrMiss
+	Letter rune
+	Match  match
 }
 
-type letterHitOrMiss struct {
-	Some  bool
-	Exact bool
+type match uint
+
+// inspiration see: https://forum.golangbridge.org/t/can-i-use-enum-in-template/25296
+func (m match) is(mIn match) bool { return m == mIn }
+
+// inspiration see: https://forum.golangbridge.org/t/can-i-use-enum-in-template/25296
+var funcMap = template.FuncMap{
+	"IsMatchVague": MatchVague.is,
+	"IsMatchNone":  MatchNone.is,
+	"IsMatchExact": MatchExact.is,
 }
+
+const (
+	_ match = iota
+	MatchVague
+	MatchNone
+	MatchExact
+)
 
 type FormData struct {
 	Data                  puzzle
@@ -402,7 +416,9 @@ func main() {
 
 	log.Printf("env conf:\n%s", envCfg)
 
-	t := template.Must(template.ParseFS(fs, "templates/index.html.tmpl", "templates/lettr-form.html.tmpl"))
+	// t := template.Must(template.ParseFS(fs, "templates/index.html.tmpl", "templates/lettr-form.html.tmpl"))
+	// log.Printf("template name: %s", t.Name())
+	t := template.Must(template.New("index.html.tmpl").Funcs(funcMap).ParseFS(fs, "templates/index.html.tmpl", "templates/lettr-form.html.tmpl"))
 
 	mux := http.NewServeMux()
 
@@ -700,25 +716,38 @@ func evaluateGuessedWord(guessedWord word, solutionWord word) wordGuess {
 
 	resultWordGuess := wordGuess{}
 
+	// initilize
+	for i, gr := range guessedWord {
+		resultWordGuess[i].Letter = gr
+		resultWordGuess[i].Match = MatchNone
+	}
+
+	// mark exact matches
 	for i, gr := range guessedWord {
 		exact := solutionWord[i] == gr
 
 		if exact {
 			guessedLetterCountMap[gr]++
+			resultWordGuess[i].Match = MatchExact
 		}
-
-		resultWordGuess[i] = letterGuess{gr, letterHitOrMiss{exact, exact}}
 	}
 
+	// mark some/vague matches
 	for i, gr := range guessedWord {
+		if resultWordGuess[i].Match == MatchExact {
+			continue
+		}
+
 		some := solutionWord.contains(gr)
 
-		if !resultWordGuess[i].HitOrMiss.Some || some {
+		if !(resultWordGuess[i].Match == MatchVague) || some {
 			guessedLetterCountMap[gr]++
 		}
 
 		s := some && (guessedLetterCountMap[gr] <= solutionWord.count(gr))
-		resultWordGuess[i].HitOrMiss.Some = s || resultWordGuess[i].HitOrMiss.Exact
+		if s {
+			resultWordGuess[i].Match = MatchVague
+		}
 	}
 
 	return resultWordGuess

@@ -50,13 +50,13 @@
                         class="
                           {{ if $canWrite }}focusable{{ end }}
 
-                          {{ if and (not $letterGuess.HitOrMiss.Exact) (not $letterGuess.HitOrMiss.Some) }}
+                          {{ if and (not (IsMatchExact $letterGuess.Match)) (not (IsMatchVague $letterGuess.Match)) }}
                           bg-gray-100
                           dark:bg-gray-700
-                          {{ else if $letterGuess.HitOrMiss.Exact }}
+                          {{ else if (IsMatchExact $letterGuess.Match) }}
                           bg-green-400
                           dark:bg-green-700
-                          {{ else if and (not $letterGuess.HitOrMiss.Exact) ($letterGuess.HitOrMiss.Some) }}
+                          {{ else if and (not (IsMatchExact $letterGuess.Match)) (IsMatchVague $letterGuess.Match) }}
                           bg-yellow-200
                           dark:bg-yellow-700
                           {{ end }}

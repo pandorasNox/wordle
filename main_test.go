@@ -153,7 +153,17 @@ func Test_parseForm(t *testing.T) {
 					},
 				}},
 			},
-			want:    puzzle{},
+			want: puzzle{
+				Guesses: [6]wordGuess{
+					{
+						letterGuess{Match: MatchNone},
+						letterGuess{Match: MatchNone},
+						letterGuess{Match: MatchNone},
+						letterGuess{Match: MatchNone},
+						letterGuess{Match: MatchNone},
+					},
+				},
+			},
 			wantErr: false,
 		},
 		{
@@ -171,11 +181,11 @@ func Test_parseForm(t *testing.T) {
 			},
 			want: puzzle{"", [6]wordGuess{
 				{
-					{'m', letterHitOrMiss{true, true}},
-					{'a', letterHitOrMiss{true, true}},
-					{'t', letterHitOrMiss{true, true}},
-					{'c', letterHitOrMiss{true, true}},
-					{'h', letterHitOrMiss{true, true}},
+					{'m', MatchExact},
+					{'a', MatchExact},
+					{'t', MatchExact},
+					{'c', MatchExact},
+					{'h', MatchExact},
 				},
 			}},
 			wantErr: false,
@@ -207,7 +217,13 @@ func Test_evaluateGuessedWord(t *testing.T) {
 				guessedWord:  word{},
 				solutionWord: word{'M', 'I', 'S', 'S', 'S'},
 			},
-			want: wordGuess{},
+			want: wordGuess{
+				{Match: MatchNone},
+				{Match: MatchNone},
+				{Match: MatchNone},
+				{Match: MatchNone},
+				{Match: MatchNone},
+			},
 		},
 		{
 			name: "full exact match",
@@ -216,11 +232,11 @@ func Test_evaluateGuessedWord(t *testing.T) {
 				solutionWord: word{'M', 'A', 'T', 'C', 'H'},
 			},
 			want: wordGuess{
-				{'m', letterHitOrMiss{true, true}},
-				{'a', letterHitOrMiss{true, true}},
-				{'t', letterHitOrMiss{true, true}},
-				{'c', letterHitOrMiss{true, true}},
-				{'h', letterHitOrMiss{true, true}},
+				{'m', MatchExact},
+				{'a', MatchExact},
+				{'t', MatchExact},
+				{'c', MatchExact},
+				{'h', MatchExact},
 			},
 		},
 		{
@@ -230,11 +246,11 @@ func Test_evaluateGuessedWord(t *testing.T) {
 				solutionWord: word{'R', 'O', 'A', 'T', 'E'},
 			},
 			want: wordGuess{
-				{'r', letterHitOrMiss{Some: true, Exact: true}},
-				{'a', letterHitOrMiss{Some: true, Exact: false}},
-				{'u', letterHitOrMiss{Some: false, Exact: false}},
-				{'l', letterHitOrMiss{Some: false, Exact: false}},
-				{'o', letterHitOrMiss{Some: true, Exact: false}},
+				{'r', MatchExact},
+				{'a', MatchVague},
+				{'u', MatchNone},
+				{'l', MatchNone},
+				{'o', MatchVague},
 			},
 		},
 		{
@@ -244,11 +260,11 @@ func Test_evaluateGuessedWord(t *testing.T) {
 				solutionWord: word{'R', 'O', 'A', 'T', 'E'},
 			},
 			want: wordGuess{
-				{'r', letterHitOrMiss{Some: true, Exact: true}},
-				{'o', letterHitOrMiss{Some: true, Exact: true}},
-				{'t', letterHitOrMiss{Some: true, Exact: false}},
-				{'o', letterHitOrMiss{Some: false, Exact: false}}, // both false bec we already found it or even already guesst the exact match
-				{'r', letterHitOrMiss{Some: false, Exact: false}}, // both false bec we already found it or even already guesst the exact match
+				{'r', MatchExact},
+				{'o', MatchExact},
+				{'t', MatchVague},
+				{'o', MatchNone}, // both false bec we already found it or even already guesst the exact match
+				{'r', MatchNone}, // both false bec we already found it or even already guesst the exact match
 			},
 		},
 		{
@@ -258,11 +274,11 @@ func Test_evaluateGuessedWord(t *testing.T) {
 				solutionWord: word{'L', 'X', 'I', 'I', 'I'},
 			},
 			want: wordGuess{
-				{'i', letterHitOrMiss{Some: false, Exact: false}},
-				{'x', letterHitOrMiss{Some: true, Exact: true}},
-				{'i', letterHitOrMiss{Some: true, Exact: true}},
-				{'i', letterHitOrMiss{Some: true, Exact: true}},
-				{'i', letterHitOrMiss{Some: true, Exact: true}},
+				{'i', MatchNone},
+				{'x', MatchExact},
+				{'i', MatchExact},
+				{'i', MatchExact},
+				{'i', MatchExact},
 			},
 		},
 		{
@@ -272,11 +288,11 @@ func Test_evaluateGuessedWord(t *testing.T) {
 				solutionWord: word{'I', 'L', 'X', 'I', 'I'},
 			},
 			want: wordGuess{
-				{'l', letterHitOrMiss{Some: true, Exact: false}},
-				{'i', letterHitOrMiss{Some: true, Exact: false}},
-				{'i', letterHitOrMiss{Some: false, Exact: false}},
-				{'i', letterHitOrMiss{Some: true, Exact: true}},
-				{'i', letterHitOrMiss{Some: true, Exact: true}},
+				{'l', MatchVague},
+				{'i', MatchVague},
+				{'i', MatchNone},
+				{'i', MatchExact},
+				{'i', MatchExact},
 			},
 		},
 		// {
@@ -288,11 +304,11 @@ func Test_evaluateGuessedWord(t *testing.T) {
 		// 	},
 		// 	want: puzzle{"", wordGuess{
 		// 		{
-		// 			{'r', letterHitOrMiss{true, true}},
-		// 			{'o', letterHitOrMiss{true, true}},
-		// 			{'t', letterHitOrMiss{true, true}},
-		// 			{'o', letterHitOrMiss{true, true}},
-		// 			{'r', letterHitOrMiss{true, true}},
+		// 			{'r', LetterExact},
+		// 			{'o', LetterExact},
+		// 			{'t', LetterExact},
+		// 			{'o', LetterExact},
+		// 			{'r', LetterExact},
 		// 		},
 		// 	}},
 		// },
