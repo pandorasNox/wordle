@@ -198,6 +198,26 @@ func (p puzzle) isLoose() bool {
 	return true
 }
 
+func (p puzzle) letterGuesses() []letterGuess {
+	lgCollector := []letterGuess{}
+
+	for _, wg := range p.Guesses {
+		if wg.isFilled() {
+			lgCollector = append(lgCollector, wg.letterGuesses()...)
+		}
+	}
+
+	lgUnique := []letterGuess{}
+	for _, lg := range lgCollector {
+		found := slices.ContainsFunc(lgUnique, func(l letterGuess) bool { return l.Letter == lg.Letter })
+		if !found {
+			lgUnique = append(lgUnique, lg)
+		}
+	}
+
+	return lgUnique
+}
+
 type wordGuess [5]letterGuess
 
 func (wg wordGuess) isFilled() bool {
@@ -220,6 +240,20 @@ func (wg wordGuess) isSolved() bool {
 	return true
 }
 
+func (wg wordGuess) letterGuesses() []letterGuess {
+	s := []letterGuess{}
+
+	if !wg.isFilled() {
+		return s
+	}
+
+	for _, lg := range wg {
+		s = append(s, lg)
+	}
+
+	return s
+}
+
 type letterGuess struct {
 	Letter rune
 	Match  match
@@ -238,9 +272,8 @@ var funcMap = template.FuncMap{
 }
 
 const (
-	_ match = iota
+	MatchNone match = iota + 1
 	MatchVague
-	MatchNone
 	MatchExact
 )
 
@@ -256,12 +289,12 @@ type FormData struct {
 	Keyboard              keyboard
 }
 
-func (fd FormData) New(l language) FormData {
+func (fd FormData) New(l language, p puzzle) FormData {
 	kb := keyboard{}
-	kb.Init(l)
+	kb.Init(l, p.letterGuesses())
 
 	return FormData{
-		Data:                  puzzle{},
+		Data:                  p,
 		Errors:                make(map[string]string),
 		JSCachePurgeTimestamp: time.Now().Unix(),
 		Language:              l,
@@ -279,16 +312,43 @@ type keyboard struct {
 	KeyGrid [][]keyboardKey
 }
 
-func (k *keyboard) Init(l language) {
+func (k *keyboard) Init(l language, lgs []letterGuess) {
 	k.KeyGrid = [][]keyboardKey{
-		{{"Q"}, {"W"}, {"E"}, {"R"}, {"T"}, {"Y"}, {"U"}, {"I"}, {"O"}, {"P"}, {"Delete"}},
-		{{"A"}, {"S"}, {"D"}, {"F"}, {"G"}, {"H"}, {"J"}, {"K"}, {"L"}, {"Enter"}},
-		{{"Z"}, {"X"}, {"C"}, {"V"}, {"B"}, {"N"}, {"M"}},
+		{{"Q", false, MatchNone}, {"W", false, MatchNone}, {"E", false, MatchNone}, {"R", false, MatchNone}, {"T", false, MatchNone}, {"Y", false, MatchNone}, {"U", false, MatchNone}, {"I", false, MatchNone}, {"O", false, MatchNone}, {"P", false, MatchNone}, {"Delete", false, MatchNone}},
+		{{"A", false, MatchNone}, {"S", false, MatchNone}, {"D", false, MatchNone}, {"F", false, MatchNone}, {"G", false, MatchNone}, {"H", false, MatchNone}, {"J", false, MatchNone}, {"K", false, MatchNone}, {"L", false, MatchNone}, {"Enter", false, MatchNone}},
+		{{"Z", false, MatchNone}, {"X", false, MatchNone}, {"C", false, MatchNone}, {"V", false, MatchNone}, {"B", false, MatchNone}, {"N", false, MatchNone}, {"M", false, MatchNone}},
+	}
+
+	for ri, r := range k.KeyGrid {
+	KeyLoop:
+		for ki, kk := range r {
+			for _, lg := range lgs {
+				if kk.Key == "Enter" || kk.Key == "Delete" {
+					continue KeyLoop
+				}
+
+				KeyR := firstRune(kk.Key)
+				if lg.Letter == unicode.ToLower(KeyR) {
+					k.KeyGrid[ri][ki].IsUsed = true
+					k.KeyGrid[ri][ki].Match = lg.Match
+				}
+			}
+		}
 	}
 }
 
+func firstRune(s string) rune {
+	for _, r := range s {
+		return r
+	}
+
+	return 0
+}
+
 type keyboardKey struct {
-	Key string
+	Key    string
+	IsUsed bool
+	Match  match
 }
 
 func (wdb *wordDatabase) Init(fs iofs.FS, filePathsByLanguage map[language]string) error {
@@ -439,15 +499,14 @@ func main() {
 		//io.WriteString(w, fmt.Sprintf("Hello, world! %s\n", session.id))
 		log.Printf("sessions:\n%s", sessions)
 
-		wo := sess.lastEvaluatedAttempt
+		p := sess.lastEvaluatedAttempt
 		// log.Printf("debug '/' route - sess.lastEvaluatedAttempt:\n %v\n", wo)
-		wo.Debug = sess.activeSolutionWord.String()
+		p.Debug = sess.activeSolutionWord.String()
 		sessions.updateOrSet(sess)
 
-		fData := FormData{}.New(sess.language)
-		fData.Data = wo
-		fData.IsSolved = wo.isSolved()
-		fData.IsLoose = wo.isLoose()
+		fData := FormData{}.New(sess.language, p)
+		fData.IsSolved = p.isSolved()
+		fData.IsLoose = p.isLoose()
 
 		err := t.ExecuteTemplate(w, "index.html.tmpl", fData)
 		if err != nil {
@@ -471,10 +530,10 @@ func main() {
 			log.Printf("error: %s", err)
 		}
 
-		wo := s.lastEvaluatedAttempt
-		wo.Debug = s.activeSolutionWord.String()
+		p := s.lastEvaluatedAttempt
+		p.Debug = s.activeSolutionWord.String()
 
-		if wo.isSolved() || wo.isLoose() {
+		if p.isSolved() || p.isLoose() {
 			w.WriteHeader(204)
 			return
 		}
@@ -487,7 +546,7 @@ func main() {
 			return
 		}
 
-		wo, err = parseForm(wo, r.PostForm, s.activeSolutionWord, s.language, wordDb)
+		p, err = parseForm(p, r.PostForm, s.activeSolutionWord, s.language, wordDb)
 		if err == ErrNotInWordList {
 			w.Header().Add("HX-Retarget", "#any-errors")
 			w.WriteHeader(422)
@@ -495,13 +554,12 @@ func main() {
 			return
 		}
 
-		s.lastEvaluatedAttempt = wo
+		s.lastEvaluatedAttempt = p
 		sessions.updateOrSet(s)
 
-		fData := FormData{}.New(s.language)
-		fData.Data = wo
-		fData.IsSolved = wo.isSolved()
-		fData.IsLoose = wo.isLoose()
+		fData := FormData{}.New(s.language, p)
+		fData.IsSolved = p.isSolved()
+		fData.IsLoose = p.isLoose()
 
 		err = t.ExecuteTemplate(w, "lettr-form", fData)
 		if err != nil {
@@ -539,8 +597,7 @@ func main() {
 
 		p.Debug = s.activeSolutionWord.String()
 
-		fData := FormData{}.New(s.language)
-		fData.Data = p
+		fData := FormData{}.New(s.language, p)
 		fData.IsSolved = p.isSolved()
 		fData.IsLoose = p.isLoose()
 

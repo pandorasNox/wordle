@@ -24,7 +24,7 @@
 - must
     * [x] word not InWordDB
     * [x] website app version via ??? (assets? or on webpage?)
-    * [ ] (mobile) keyboard (use + indication for used letters)
+    * [x] (mobile) keyboard (use + indication for used letters)
     * [ ] protect against request size
     * [ ] fix scripts/tools.sh func_exec_cli passing parameter issue
     * [ ] editorial work: e.g. words like games or gamer are missing + maybe we introduce a common vs uncommen word list
@@ -33,3 +33,4 @@
     * [ ] get definition (e.g. wikitionary)
     * [ ] hint feature / give me one letter
     * [ ] ui languge should also change
+    * [ ] ESLint
