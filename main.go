@@ -28,7 +28,7 @@ var Revision = "0000000"
 var FaviconPath = "/static/assets/favicon"
 
 const SESSION_COOKIE_NAME = "session"
-const SESSION_MAX_AGE_IN_SECONDS = 120
+const SESSION_MAX_AGE_IN_SECONDS = 24 * 60 * 60
 
 //go:embed configs/*.txt
 //go:embed templates/*.html.tmpl
