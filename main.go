@@ -207,15 +207,7 @@ func (p puzzle) letterGuesses() []letterGuess {
 		}
 	}
 
-	lgUnique := []letterGuess{}
-	for _, lg := range lgCollector {
-		found := slices.ContainsFunc(lgUnique, func(l letterGuess) bool { return l.Letter == lg.Letter })
-		if !found {
-			lgUnique = append(lgUnique, lg)
-		}
-	}
-
-	return lgUnique
+	return lgCollector
 }
 
 type wordGuess [5]letterGuess
@@ -328,7 +320,10 @@ func (k *keyboard) Init(l language, lgs []letterGuess) {
 				}
 
 				KeyR := firstRune(kk.Key)
-				if lg.Letter == unicode.ToLower(KeyR) {
+				betterMatch := (k.KeyGrid[ri][ki].Match == MatchNone) ||
+					(k.KeyGrid[ri][ki].Match == MatchVague && lg.Match == MatchExact)
+
+				if lg.Letter == unicode.ToLower(KeyR) && betterMatch {
 					k.KeyGrid[ri][ki].IsUsed = true
 					k.KeyGrid[ri][ki].Match = lg.Match
 				}
