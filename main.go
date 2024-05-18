@@ -22,6 +22,7 @@ import (
 	"unicode/utf8"
 
 	"github.com/google/uuid"
+	"github.com/pandorasNox/lettr/pkg/middleware"
 )
 
 var Revision = "0000000"
@@ -621,7 +622,9 @@ func main() {
 
 	})
 
-	log.Fatal(http.ListenAndServe(fmt.Sprintf(":%s", envCfg.port), mux))
+	muxWithMiddlewares := middleware.NewRequestSize(mux, 32*1024 /* 32kiB */)
+
+	log.Fatal(http.ListenAndServe(fmt.Sprintf(":%s", envCfg.port), muxWithMiddlewares))
 }
 
 func envConfig() env {

@@ -25,7 +25,7 @@
     * [x] word not InWordDB
     * [x] website app version via ??? (assets? or on webpage?)
     * [x] (mobile) keyboard (use + indication for used letters)
-    * [ ] protect against request size
+    * [ ] protect against request size + correct http 413 error code throw
     * [ ] fix scripts/tools.sh func_exec_cli passing parameter issue
     * [ ] editorial work: e.g. words like games or gamer are missing + maybe we introduce a common vs uncommen word list
     * [ ] bugfix: full page get form submit request on random occations when it should just be a htmx post
@@ -34,3 +34,6 @@
     * [ ] hint feature / give me one letter
     * [ ] ui languge should also change
     * [ ] ESLint
+    * [ ] http error codes:
+        * [ ] 414 URI Too Long
+        * [ ] 431 Request Header Fields Too Large (RFC 6585)
