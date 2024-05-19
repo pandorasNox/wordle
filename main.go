@@ -536,7 +536,6 @@ func main() {
 
 		// log.Printf("debug '/lettr' route - row compare: activeRow='%d' / formRowCount='%d' \n", s.lastEvaluatedAttempt.activeRow(), countFilledFormRows(r.PostForm))
 		if s.lastEvaluatedAttempt.activeRow() != countFilledFormRows(r.PostForm)-1 {
-			w.Header().Add("HX-Retarget", "#any-errors")
 			w.WriteHeader(422)
 			w.Write([]byte("faked rows"))
 			return
@@ -544,7 +543,6 @@ func main() {
 
 		p, err = parseForm(p, r.PostForm, s.activeSolutionWord, s.language, wordDb)
 		if err == ErrNotInWordList {
-			w.Header().Add("HX-Retarget", "#any-errors")
 			w.WriteHeader(422)
 			w.Write([]byte("word not in word list"))
 			return
@@ -623,6 +621,7 @@ func main() {
 	})
 
 	muxWithMiddlewares := middleware.NewRequestSize(mux, 32*1024 /* 32kiB */)
+	muxWithMiddlewares = middleware.NewBodySize(muxWithMiddlewares, 32*1024 /* 32kiB */)
 
 	log.Fatal(http.ListenAndServe(fmt.Sprintf(":%s", envCfg.port), muxWithMiddlewares))
 }

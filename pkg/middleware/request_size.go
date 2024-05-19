@@ -18,6 +18,6 @@ func (l *RequestSize) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 
 // NewRequestSize retuns a RequestSize middleware, that will limit request sizes to a specified
 // number of bytes. It uses MaxBytesReader to do so.
-func NewRequestSize(handlerToWrap http.Handler, bytes int64) *RequestSize {
+func NewRequestSize(handlerToWrap http.Handler, bytes int64) http.Handler {
 	return &RequestSize{handlerToWrap, bytes}
 }
