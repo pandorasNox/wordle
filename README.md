@@ -30,6 +30,7 @@
     * [ ] editorial work: e.g. words like games or gamer are missing + maybe we introduce a common vs uncommen word list
     * [ ] bugfix: full page get form submit request on random occations when it should just be a htmx post
 - nice-to-have
+    * [ ] option for double letter hint
     * [ ] get definition (e.g. wikitionary)
     * [ ] hint feature / give me one letter
     * [ ] ui languge should also change
