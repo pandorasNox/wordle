@@ -620,8 +620,19 @@ func main() {
 
 	})
 
-	muxWithMiddlewares := middleware.NewRequestSize(mux, 32*1024 /* 32kiB */)
-	muxWithMiddlewares = middleware.NewBodySize(muxWithMiddlewares, 32*1024 /* 32kiB */)
+	middlewares := []func(h http.Handler) http.Handler{
+		func(h http.Handler) http.Handler {
+			return middleware.NewRequestSize(h, 32*1024 /* 32kiB */)
+		},
+		func(h http.Handler) http.Handler {
+			return middleware.NewBodySize(h, 32*1024 /* 32kiB */)
+		},
+	}
+
+	var muxWithMiddlewares http.Handler = mux
+	for _, fm := range middlewares {
+		muxWithMiddlewares = fm(muxWithMiddlewares)
+	}
 
 	log.Fatal(http.ListenAndServe(fmt.Sprintf(":%s", envCfg.port), muxWithMiddlewares))
 }
