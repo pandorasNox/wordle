@@ -28,6 +28,7 @@
     * [x] protect against request size + correct http 413 error code throw
     * [ ] fix scripts/tools.sh func_exec_cli passing parameter issue
     * [ ] editorial work: e.g. words like games or gamer are missing + maybe we introduce a common vs uncommen word list
+        * [ ] word suggestion (button to save (unknown) word eg. in LiteFS/email/github-issue/something)
     * [ ] bugfix: full page get form submit request on random occations when it should just be a htmx post
 - nice-to-have
     * [ ] option for double letter hint
