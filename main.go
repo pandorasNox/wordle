@@ -63,6 +63,15 @@ type session struct {
 	language             language
 	activeSolutionWord   word
 	lastEvaluatedAttempt puzzle
+	pastWords            []word
+}
+
+func (s *session) AddPastWord(w word) {
+	s.pastWords = append(s.pastWords, w)
+}
+
+func (s *session) PastWords() []word {
+	return slices.Clone(s.pastWords)
 }
 
 type sessions []session
@@ -280,9 +289,10 @@ type FormData struct {
 	Revision              string
 	FaviconPath           string
 	Keyboard              keyboard
+	PastWords             []word
 }
 
-func (fd FormData) New(l language, p puzzle) FormData {
+func (fd FormData) New(l language, p puzzle, pastWords []word) FormData {
 	kb := keyboard{}
 	kb.Init(l, p.letterGuesses())
 
@@ -294,6 +304,7 @@ func (fd FormData) New(l language, p puzzle) FormData {
 		Revision:              Revision,
 		FaviconPath:           FaviconPath,
 		Keyboard:              kb,
+		PastWords:             pastWords,
 	}
 }
 
@@ -500,7 +511,7 @@ func main() {
 		p.Debug = sess.activeSolutionWord.String()
 		sessions.updateOrSet(sess)
 
-		fData := FormData{}.New(sess.language, p)
+		fData := FormData{}.New(sess.language, p, sess.PastWords())
 		fData.IsSolved = p.isSolved()
 		fData.IsLoose = p.isLoose()
 
@@ -551,7 +562,7 @@ func main() {
 		s.lastEvaluatedAttempt = p
 		sessions.updateOrSet(s)
 
-		fData := FormData{}.New(s.language, p)
+		fData := FormData{}.New(s.language, p, s.PastWords())
 		fData.IsSolved = p.isSolved()
 		fData.IsLoose = p.isLoose()
 
@@ -586,12 +597,13 @@ func main() {
 		p := puzzle{}
 
 		s.lastEvaluatedAttempt = p
+		s.AddPastWord(s.activeSolutionWord)
 		s.activeSolutionWord = generateSession(l, wordDb).activeSolutionWord
 		sessions.updateOrSet(s)
 
 		p.Debug = s.activeSolutionWord.String()
 
-		fData := FormData{}.New(s.language, p)
+		fData := FormData{}.New(s.language, p, s.PastWords())
 		fData.IsSolved = p.isSolved()
 		fData.IsLoose = p.isLoose()
 
@@ -709,7 +721,7 @@ func generateSession(lang language, wdb wordDatabase) session { //todo: pass it 
 		activeWord = word{'R', 'O', 'A', 'T', 'E'}
 	}
 
-	return session{id, expiresAt, SESSION_MAX_AGE_IN_SECONDS, lang, activeWord, puzzle{}}
+	return session{id, expiresAt, SESSION_MAX_AGE_IN_SECONDS, lang, activeWord, puzzle{}, []word{}}
 }
 
 func generateSessionLifetime() time.Time {
