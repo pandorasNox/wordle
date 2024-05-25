@@ -36,6 +36,7 @@ COPY ./pkg ./pkg
 RUN go mod download
 
 COPY ./main.go ./main.go
+COPY ./words.go ./words.go
 COPY ./configs ./configs
 COPY ./templates ./templates
 COPY ./web ./web

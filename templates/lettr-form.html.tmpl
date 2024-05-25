@@ -21,6 +21,8 @@
         <form
             name="lettr"
             
+            onsubmit="event.preventDefault();"
+
             hx-post="/lettr"
             hx-target="#lettr-container"
             hx-disabled-elt="this"

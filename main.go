@@ -325,7 +325,6 @@ func (wdb *wordDatabase) Init(fs iofs.FS, filePathsByLanguage map[language]strin
 	for l, path := range filePathsByLanguage {
 		wdb.db[l] = make(map[wordCollection]map[word]bool)
 		wdb.db[l][WC_ALL] = make(map[word]bool)
-		wdb.db[l][WC_COMMON] = make(map[word]bool)
 
 		f, err := fs.Open(path)
 		if err != nil {
@@ -366,6 +365,8 @@ func (wdb *wordDatabase) Init(fs iofs.FS, filePathsByLanguage map[language]strin
 		}
 
 		if l == LANG_EN {
+			wdb.db[l][WC_COMMON] = make(map[word]bool)
+
 			for _, candidate := range wordsCommonEN {
 				word, err := toWord(candidate)
 				if err != nil {
@@ -415,7 +416,7 @@ func (wdb wordDatabase) RandomPick(l language) (word, error) {
 
 	randsource := rand.NewSource(time.Now().UnixNano())
 	randgenerator := rand.New(randsource)
-	rolledLine := randgenerator.Intn(len(db))
+	rolledLine := randgenerator.Intn(len(db_c))
 
 	currentLine := 0
 	for w := range db_c {
