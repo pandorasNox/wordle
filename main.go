@@ -308,8 +308,134 @@ func (fd FormData) New(l language, p puzzle, pastWords []word) FormData {
 	}
 }
 
+type wordCollection string
+
+const (
+	WC_ALL    wordCollection = "wc_all"
+	WC_COMMON wordCollection = "wc_common"
+)
+
 type wordDatabase struct {
-	db map[language]map[word]bool
+	db map[language]map[wordCollection]map[word]bool
+}
+
+func (wdb *wordDatabase) Init(fs iofs.FS, filePathsByLanguage map[language]string) error {
+	wdb.db = make(map[language]map[wordCollection]map[word]bool)
+
+	for l, path := range filePathsByLanguage {
+		wdb.db[l] = make(map[wordCollection]map[word]bool)
+		wdb.db[l][WC_ALL] = make(map[word]bool)
+		wdb.db[l][WC_COMMON] = make(map[word]bool)
+
+		f, err := fs.Open(path)
+		if err != nil {
+			return fmt.Errorf("wordDatabase init failed when opening file: %s", err)
+		}
+		defer f.Close()
+
+		fInfo, err := f.Stat()
+		if err != nil {
+			return fmt.Errorf("wordDatabase init failed when obtaining stat: %s", err)
+		}
+
+		var allowedSize int64 = 2 * 1024 * 1024 // 2 MB
+		if fInfo.Size() > allowedSize {
+			return fmt.Errorf("wordDatabase init failed with forbidden file size: path='%s', size='%d'", path, fInfo.Size())
+		}
+
+		scanner := bufio.NewScanner(f)
+		var line int = 0
+		for scanner.Scan() {
+			if line == 0 { // skip first metadata line
+				line++
+				continue
+			}
+
+			candidate := scanner.Text()
+			word, err := toWord(candidate)
+			if err != nil {
+				return fmt.Errorf("wordDatabase init, couldn't parse line to word: line='%s', err=%s", candidate, err)
+			}
+
+			wdb.db[l][WC_ALL][word.ToLower()] = true
+
+			line++
+		}
+		if err := scanner.Err(); err != nil {
+			return fmt.Errorf("wordDatabase init failed scanning file with: path='%s', err=%s", path, err)
+		}
+
+		if l == LANG_EN {
+			for _, candidate := range wordsCommonEN {
+				word, err := toWord(candidate)
+				if err != nil {
+					return fmt.Errorf("wordDatabase init, couldn't parse line to word: line='%s', err=%s", candidate, err)
+				}
+
+				wdb.db[LANG_EN][WC_ALL][word.ToLower()] = true
+				wdb.db[LANG_EN][WC_COMMON][word.ToLower()] = true
+			}
+		}
+	}
+
+	return nil
+}
+
+func (wdb wordDatabase) Exists(l language, w word) bool {
+	db, ok := wdb.db[l]
+	if !ok {
+		return false
+	}
+
+	db_c, ok := db[WC_ALL]
+	if !ok {
+		return false
+	}
+
+	_, ok = db_c[w.ToLower()]
+	return ok
+}
+
+func (wdb wordDatabase) RandomPick(l language) (word, error) {
+	db, ok := wdb.db[l]
+	if !ok {
+		return word{}, fmt.Errorf("RandomPick failed with unknown language: '%s'", l)
+	}
+
+	collection := WC_COMMON
+	db_c, ok := db[collection]
+	if !ok {
+		collection = WC_ALL
+
+		db_c, ok = db[collection]
+		if !ok {
+			return word{}, fmt.Errorf("RandomPick with lang '%s' failed with unknown collection: '%s'", l, collection)
+		}
+	}
+
+	randsource := rand.NewSource(time.Now().UnixNano())
+	randgenerator := rand.New(randsource)
+	rolledLine := randgenerator.Intn(len(db))
+
+	currentLine := 0
+	for w := range db_c {
+		if currentLine == rolledLine {
+			return w, nil
+		}
+
+		currentLine++
+	}
+
+	return word{}, fmt.Errorf("RandomPick could not find random line aka this should never happen ^^")
+}
+
+func (wdb wordDatabase) RandomPickWithFallback(l language) word {
+	w, err := wdb.RandomPick(l)
+	if err != nil {
+		return word{'R', 'O', 'A', 'T', 'E'}.ToLower()
+	}
+
+	return w.ToLower()
 }
 
 type keyboard struct {
@@ -356,86 +482,6 @@ type keyboardKey struct {
 	Key    string
 	IsUsed bool
 	Match  match
-}
-
-func (wdb *wordDatabase) Init(fs iofs.FS, filePathsByLanguage map[language]string) error {
-	wdb.db = make(map[language]map[word]bool)
-
-	for l, path := range filePathsByLanguage {
-		wdb.db[l] = make(map[word]bool)
-
-		f, err := fs.Open(path)
-		if err != nil {
-			return fmt.Errorf("wordDatabase init failed when opening file: %s", err)
-		}
-		defer f.Close()
-
-		fInfo, err := f.Stat()
-		if err != nil {
-			return fmt.Errorf("wordDatabase init failed when obtaining stat: %s", err)
-		}
-
-		var allowedSize int64 = 2 * 1024 * 1024 // 2 MB
-		if fInfo.Size() > allowedSize {
-			return fmt.Errorf("wordDatabase init failed with forbidden file size: path='%s', size='%d'", path, fInfo.Size())
-		}
-
-		scanner := bufio.NewScanner(f)
-		var line int = 0
-		for scanner.Scan() {
-			if line == 0 { // skip first metadata line
-				line++
-				continue
-			}
-
-			candidate := scanner.Text()
-			word, err := toWord(candidate)
-			if err != nil {
-				return fmt.Errorf("wordDatabase init, couldn't parse line to word: line='%s', err=%s", candidate, err)
-			}
-
-			wdb.db[l][word.ToLower()] = true
-
-			line++
-		}
-		if err := scanner.Err(); err != nil {
-			return fmt.Errorf("wordDatabase init failed scanning file with: path='%s', err=%s", path, err)
-		}
-	}
-
-	return nil
-}
-
-func (wdb wordDatabase) Exists(l language, w word) bool {
-	db, ok := wdb.db[l]
-	if !ok {
-		return false
-	}
-
-	_, ok = db[w.ToLower()]
-	return ok
-}
-
-func (wdb wordDatabase) RandomPick(l language) (word, error) {
-	db, ok := wdb.db[l]
-	if !ok {
-		return word{}, fmt.Errorf("RandomPick failed with unknown language: '%s'", l)
-	}
-
-	randsource := rand.NewSource(time.Now().UnixNano())
-	randgenerator := rand.New(randsource)
-	rolledLine := randgenerator.Intn(len(db))
-
-	currentLine := 0
-	for w := range db {
-		if currentLine == rolledLine {
-			return w, nil
-		}
-
-		currentLine++
-	}
-
-	return word{}, fmt.Errorf("RandomPick could not find random line aka this should never happen ^^")
 }
 
 func Map[T, U any](ts []T, f func(T) U) []U {
@@ -598,7 +644,7 @@ func main() {
 
 		s.lastEvaluatedAttempt = p
 		s.AddPastWord(s.activeSolutionWord)
-		s.activeSolutionWord = generateSession(l, wordDb).activeSolutionWord
+		s.activeSolutionWord = wordDb.RandomPickWithFallback(l)
 		sessions.updateOrSet(s)
 
 		p.Debug = s.activeSolutionWord.String()
@@ -718,7 +764,7 @@ func generateSession(lang language, wdb wordDatabase) session { //todo: pass it 
 	if err != nil {
 		log.Printf("pick random word failed: %s", err)
 
-		activeWord = word{'R', 'O', 'A', 'T', 'E'}
+		activeWord = word{'R', 'O', 'A', 'T', 'E'}.ToLower()
 	}
 
 	return session{id, expiresAt, SESSION_MAX_AGE_IN_SECONDS, lang, activeWord, puzzle{}, []word{}}

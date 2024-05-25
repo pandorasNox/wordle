@@ -79,9 +79,11 @@ func Test_handleSession(t *testing.T) {
 				httptest.NewRecorder(),
 				httptest.NewRequest("get", "/", strings.NewReader("Hello, Reader!")),
 				&sessions{},
-				wordDatabase{db: map[language]map[word]bool{
+				wordDatabase{db: map[language]map[wordCollection]map[word]bool{
 					LANG_EN: {
-						word{'R', 'O', 'A', 'T', 'E'}: true,
+						WC_COMMON: {
+							word{'R', 'O', 'A', 'T', 'E'}: true,
+						},
 					},
 				}},
 			},
@@ -91,7 +93,7 @@ func Test_handleSession(t *testing.T) {
 				maxAgeSeconds:      86400,
 				language:           LANG_EN,
 				activeSolutionWord: word{'R', 'O', 'A', 'T', 'E'},
-				pastWords: []word{},
+				pastWords:          []word{},
 			},
 		},
 		// {
@@ -147,10 +149,12 @@ func Test_parseForm(t *testing.T) {
 				form:         url.Values{"r0": make([]string, 5)},
 				solutionWord: word{'M', 'I', 'S', 'S', 'S'},
 				language:     LANG_EN,
-				wdb: wordDatabase{db: map[language]map[word]bool{
+				wdb: wordDatabase{db: map[language]map[wordCollection]map[word]bool{
 					LANG_EN: {
-						word{'m', 'i', 's', 's', 's'}: true,
-						word{0, 0, 0, 0, 0}:           true, // equals make([]string, 5)
+						WC_COMMON: {
+							word{'m', 'i', 's', 's', 's'}: true,
+							word{0, 0, 0, 0, 0}:           true, // equals make([]string, 5)
+						},
 					},
 				}},
 			},
@@ -174,9 +178,11 @@ func Test_parseForm(t *testing.T) {
 				form:         url.Values{"r0": []string{"M", "A", "T", "C", "H"}},
 				solutionWord: word{'M', 'A', 'T', 'C', 'H'},
 				language:     LANG_EN,
-				wdb: wordDatabase{db: map[language]map[word]bool{
+				wdb: wordDatabase{db: map[language]map[wordCollection]map[word]bool{
 					LANG_EN: {
-						word{'m', 'a', 't', 'c', 'h'}: true,
+						WC_COMMON: {
+							word{'m', 'a', 't', 'c', 'h'}: true,
+						},
 					},
 				}},
 			},
