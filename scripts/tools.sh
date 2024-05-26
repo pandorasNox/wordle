@@ -177,7 +177,7 @@ else
 
     if [ $1 == "bench" ]
     then
-      func_exec_cli "go test -bench=. -cpu=1 -benchmem -count 10"
+      func_exec_cli "go test -bench=. -run=^$ -cpu=1 -benchmem -count=10"
     fi
 
     if [ $1 == "down" ]
