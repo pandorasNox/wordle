@@ -35,7 +35,7 @@
         * https://api.wortschatz-leipzig.de/ws/swagger-ui/index.html#/Words/getWordInformation
         * https://wortschatz.uni-leipzig.de/en/download/English
 - nice-to-have
-    * [ ] option for double letter hint
+    * [x] option for double letter hint
     * [ ] get definition (e.g. wikitionary)
         * options:
             * https://raw.githubusercontent.com/wordset/wordset-dictionary/master/data/%s.json

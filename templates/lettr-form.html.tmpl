@@ -97,6 +97,10 @@
         </form>
     </div>
     {{ template "keyboard" . }}
+    <div class="group text-center">
+        <button >has duplicates?</button>
+        <span class="w-5 text-pink-500 invisible opacity-0 group-hover:opacity-100 group-hover:visible">{{ if .SolutionHasDublicateLetters }}yes{{ else }}no{{ end }}</span>
+    </div>
   </div>
 {{ end }}
 

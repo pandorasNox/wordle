@@ -147,6 +147,16 @@ func (w word) count(letter rune) int {
 	return count
 }
 
+func (w word) hasDublicateLetters() bool {
+	for _, l := range w {
+		if w.count(l) >= 2 {
+			return true
+		}
+	}
+
+	return false
+}
+
 func (w word) ToLower() word {
 	for i, v := range w {
 		w[i] = unicode.ToLower(v)
@@ -280,31 +290,33 @@ const (
 )
 
 type FormData struct {
-	Data                  puzzle
-	Errors                map[string]string
-	IsSolved              bool
-	IsLoose               bool
-	JSCachePurgeTimestamp int64
-	Language              language
-	Revision              string
-	FaviconPath           string
-	Keyboard              keyboard
-	PastWords             []word
+	Data                        puzzle
+	Errors                      map[string]string
+	IsSolved                    bool
+	IsLoose                     bool
+	JSCachePurgeTimestamp       int64
+	Language                    language
+	Revision                    string
+	FaviconPath                 string
+	Keyboard                    keyboard
+	PastWords                   []word
+	SolutionHasDublicateLetters bool
 }
 
-func (fd FormData) New(l language, p puzzle, pastWords []word) FormData {
+func (fd FormData) New(l language, p puzzle, pastWords []word, SolutionHasDublicateLetters bool) FormData {
 	kb := keyboard{}
 	kb.Init(l, p.letterGuesses())
 
 	return FormData{
-		Data:                  p,
-		Errors:                make(map[string]string),
-		JSCachePurgeTimestamp: time.Now().Unix(),
-		Language:              l,
-		Revision:              Revision,
-		FaviconPath:           FaviconPath,
-		Keyboard:              kb,
-		PastWords:             pastWords,
+		Data:                        p,
+		Errors:                      make(map[string]string),
+		JSCachePurgeTimestamp:       time.Now().Unix(),
+		Language:                    l,
+		Revision:                    Revision,
+		FaviconPath:                 FaviconPath,
+		Keyboard:                    kb,
+		PastWords:                   pastWords,
+		SolutionHasDublicateLetters: SolutionHasDublicateLetters,
 	}
 }
 
@@ -558,7 +570,7 @@ func main() {
 		p.Debug = sess.activeSolutionWord.String()
 		sessions.updateOrSet(sess)
 
-		fData := FormData{}.New(sess.language, p, sess.PastWords())
+		fData := FormData{}.New(sess.language, p, sess.PastWords(), sess.activeSolutionWord.hasDublicateLetters())
 		fData.IsSolved = p.isSolved()
 		fData.IsLoose = p.isLoose()
 
@@ -609,7 +621,7 @@ func main() {
 		s.lastEvaluatedAttempt = p
 		sessions.updateOrSet(s)
 
-		fData := FormData{}.New(s.language, p, s.PastWords())
+		fData := FormData{}.New(s.language, p, s.PastWords(), s.activeSolutionWord.hasDublicateLetters())
 		fData.IsSolved = p.isSolved()
 		fData.IsLoose = p.isLoose()
 
@@ -650,7 +662,7 @@ func main() {
 
 		p.Debug = s.activeSolutionWord.String()
 
-		fData := FormData{}.New(s.language, p, s.PastWords())
+		fData := FormData{}.New(s.language, p, s.PastWords(), s.activeSolutionWord.hasDublicateLetters())
 		fData.IsSolved = p.isSolved()
 		fData.IsLoose = p.isLoose()
 
