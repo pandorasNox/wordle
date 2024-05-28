@@ -1,0 +1,25 @@
+services:
+
+  mariadb:
+    # image: mariadb:11.3.2
+    build:
+      context: container-images/corpora/db
+      dockerfile: ./Dockerfile # relative to 'context' field
+    restart: always
+    environment:
+      MARIADB_ROOT_PASSWORD: example
+    volumes:
+      - ./tmp:/tmp/dumps
+
+  adminer:
+    image: adminer:4.8.1
+    restart: always
+    ports:
+      - 8066:8080
+
+#SELECT w_id, word, freq
+#select count(*)
+#FROM words
+#WHERE CHAR_LENGTH(word) = 5 AND word RLIKE "^[a-zA-Z]+$" AND freq > 1
+#ORDER BY freq DESC
+##LIMIT 500

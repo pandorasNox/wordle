@@ -38,3 +38,7 @@ prod:
 .PHONY: deploy
 deploy:
 	./scripts/tools.sh deploy
+
+.PHONY: corpora
+corpora:
+	./scripts/corpora_setup.sh
