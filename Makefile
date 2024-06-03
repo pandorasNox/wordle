@@ -41,4 +41,4 @@ deploy:
 
 .PHONY: corpora
 corpora:
-	./scripts/corpora_setup.sh
+	./scripts/corpora_export.sh
