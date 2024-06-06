@@ -25,11 +25,14 @@ docker compose up -d
 # ensure db connection
 docker compose exec -T mariadb bash -c "MYSQL_HOST=mariadb MYSQL_USER=root MYSQL_PASSWORD=example MYSQL_PORT=3306 /scripts/check_db_con.sh"
 
-# drop db if exist (ensure clean plate)
-docker compose exec -T mariadb bash -c "mariadb -uroot -p'example' -e 'DROP DATABASE IF EXISTS eng_news_2023_10K'"
+#...
+docker compose exec -T mariadb bash -c "/scripts/corporas_export.sh /datasets"
 
-# import corpora data
-docker compose exec -T mariadb bash -c "cd /datasets/eng_news_2023_10K; mariadb -uroot -p'example' < eng_news_2023_10K-import.sql"
+# # drop db if exist (ensure clean plate)
+# docker compose exec -T mariadb bash -c "mariadb -uroot -p'example' -e 'DROP DATABASE IF EXISTS eng_news_2023_10K'"
+
+# # import corpora data
+# docker compose exec -T mariadb bash -c "cd /datasets/eng_news_2023_10K; mariadb -uroot -p'example' < eng_news_2023_10K-import.sql"
 
 # export start
 
@@ -61,3 +64,5 @@ rmdir ${tmpDir}
 # run export
 docker compose exec -T mariadb bash -c \
   "cat /tmp/${queryFileName} | mariadb -uroot -p'example' eng_news_2023_10K"
+
+docker compose down -t 1
