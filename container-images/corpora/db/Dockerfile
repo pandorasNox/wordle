@@ -1,6 +1,10 @@
 FROM mariadb:11.3.2
 
 RUN set -e; \
+    test "1" = "$(cat /etc/os-release | grep -i 'Name="Ubuntu"' | wc -l)"; \
+    test "1" = "$(cat /etc/os-release | grep 'VERSION="22.04.4 LTS (Jammy Jellyfish)"' | wc -l)";
+
+RUN set -e; \
     apt-get update; \
     apt-get install -y \
         curl \
