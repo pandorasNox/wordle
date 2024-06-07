@@ -16,8 +16,10 @@ fi
 
 # -----------------------------------------------------------------------------
 
+echo "start dataset import"
+
 DATASETS_DIR=${1?missing first argument datasets dir}
-echo ${DATASETS_DIR}
+echo "using dataset dir:'${DATASETS_DIR}'"
 
 func_do() {
     dirs=$(find ${DATASETS_DIR} -maxdepth 1 -mindepth 1 -type d -printf '%f\n')
@@ -39,3 +41,5 @@ func_do() {
 }
 
 func_do
+
+echo "done dataset import"

@@ -21,9 +21,11 @@ echo ${DOWNLOAD_DIR}
 
 func_download () {
   set -- \
-   eng_news_2023_10K \
-   deu_news_2023_10K \
-   ;
+    eng_news_2023_10K \
+    eng_news_2023_1M \
+    deu_news_2023_10K \
+    deu_news_2023_1M \
+  ;
 
   for item in "${@}"; do
     printf 'download %s...' "${item}";
