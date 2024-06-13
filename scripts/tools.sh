@@ -126,7 +126,8 @@ func_exec_cli() {
 }
 
 func_down() {
-  docker stop -t1 "${CLI_CONTAINER_NAME}"
+  docker stop -t1 "${CLI_CONTAINER_NAME}" || true # ' || true ' for "No such container: lettr_cli_con" error (ignore if not exists)
+  docker compose down
 }
 
 func_skopeo_cli() {

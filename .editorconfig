@@ -1,0 +1,6 @@
+
+# Indentation for all shell scripts,
+# decision based on: https://google.github.io/styleguide/shellguide.html#s5.1-indentation
+[*.sh]
+indent_style = space
+indent_size = 2
