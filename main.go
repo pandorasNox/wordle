@@ -523,8 +523,8 @@ func getAllFilenames(efs iofs.FS) (files []string, err error) {
 
 func filePathsByLang() map[language]string {
 	return map[language]string{
-		LANG_EN: "configs/en-en.words.v2.txt",
-		LANG_DE: "configs/de-de.words.v2.txt",
+		LANG_EN: "configs/corpora-eng_news_2023_10K-export.txt",
+		LANG_DE: "configs/corpora-deu_news_2023_10K-export.txt",
 	}
 }
 
