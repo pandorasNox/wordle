@@ -331,62 +331,52 @@ type wordDatabase struct {
 	db map[language]map[wordCollection]map[word]bool
 }
 
-func (wdb *wordDatabase) Init(fs iofs.FS, filePathsByLanguage map[language]string) error {
+func (wdb *wordDatabase) Init(fs iofs.FS, filePathsByLanguage map[language]map[wordCollection][]string) error {
 	wdb.db = make(map[language]map[wordCollection]map[word]bool)
 
-	for l, path := range filePathsByLanguage {
+	for l, collection := range filePathsByLanguage {
 		wdb.db[l] = make(map[wordCollection]map[word]bool)
-		wdb.db[l][WC_ALL] = make(map[word]bool)
+		for c, paths := range collection {
+			wdb.db[l][c] = make(map[word]bool)
 
-		f, err := fs.Open(path)
-		if err != nil {
-			return fmt.Errorf("wordDatabase init failed when opening file: %s", err)
-		}
-		defer f.Close()
-
-		fInfo, err := f.Stat()
-		if err != nil {
-			return fmt.Errorf("wordDatabase init failed when obtaining stat: %s", err)
-		}
-
-		var allowedSize int64 = 2 * 1024 * 1024 // 2 MB
-		if fInfo.Size() > allowedSize {
-			return fmt.Errorf("wordDatabase init failed with forbidden file size: path='%s', size='%d'", path, fInfo.Size())
-		}
-
-		scanner := bufio.NewScanner(f)
-		var line int = 0
-		for scanner.Scan() {
-			if line == 0 { // skip first metadata line
-				line++
-				continue
-			}
-
-			candidate := scanner.Text()
-			word, err := toWord(candidate)
-			if err != nil {
-				return fmt.Errorf("wordDatabase init, couldn't parse line to word: line='%s', err=%s", candidate, err)
-			}
-
-			wdb.db[l][WC_ALL][word.ToLower()] = true
-
-			line++
-		}
-		if err := scanner.Err(); err != nil {
-			return fmt.Errorf("wordDatabase init failed scanning file with: path='%s', err=%s", path, err)
-		}
-
-		if l == LANG_EN {
-			wdb.db[l][WC_COMMON] = make(map[word]bool)
-
-			for _, candidate := range wordsCommonEN {
-				word, err := toWord(candidate)
+			for _, path := range paths {
+				f, err := fs.Open(path)
 				if err != nil {
-					return fmt.Errorf("wordDatabase init, couldn't parse line to word: line='%s', err=%s", candidate, err)
+					return fmt.Errorf("wordDatabase init failed when opening file: %s", err)
+				}
+				defer f.Close()
+
+				fInfo, err := f.Stat()
+				if err != nil {
+					return fmt.Errorf("wordDatabase init failed when obtaining stat: %s", err)
 				}
 
-				wdb.db[LANG_EN][WC_ALL][word.ToLower()] = true
-				wdb.db[LANG_EN][WC_COMMON][word.ToLower()] = true
+				var allowedSize int64 = 2 * 1024 * 1024 // 2 MB
+				if fInfo.Size() > allowedSize {
+					return fmt.Errorf("wordDatabase init failed with forbidden file size: path='%s', size='%d'", path, fInfo.Size())
+				}
+
+				scanner := bufio.NewScanner(f)
+				var line int = 0
+				for scanner.Scan() {
+					if line == 0 { // skip first metadata line
+						line++
+						continue
+					}
+
+					candidate := scanner.Text()
+					word, err := toWord(candidate)
+					if err != nil {
+						return fmt.Errorf("wordDatabase init, couldn't parse line to word: line='%s', err=%s", candidate, err)
+					}
+
+					wdb.db[l][c][word.ToLower()] = true
+
+					line++
+				}
+				if err := scanner.Err(); err != nil {
+					return fmt.Errorf("wordDatabase init failed scanning file with: path='%s', err=%s", path, err)
+				}
 			}
 		}
 	}
@@ -521,10 +511,26 @@ func getAllFilenames(efs iofs.FS) (files []string, err error) {
 	return files, nil
 }
 
-func filePathsByLang() map[language]string {
-	return map[language]string{
-		LANG_EN: "configs/corpora-eng_news_2023_10K-export.txt",
-		LANG_DE: "configs/corpora-deu_news_2023_10K-export.txt",
+func filePathsByLang() map[language]map[wordCollection][]string {
+	return map[language]map[wordCollection][]string{
+		LANG_EN: {
+			WC_ALL: {
+				"configs/corpora-eng_news_2023_10K-export.txt",
+				"configs/en-en.words.v2.txt",
+			},
+			WC_COMMON: {
+				"configs/corpora-eng_news_2023_10K-export.txt",
+			},
+		},
+		LANG_DE: {
+			WC_ALL: {
+				"configs/corpora-deu_news_2023_10K-export.txt",
+				"configs/de-de.words.v2.txt",
+			},
+			WC_COMMON: {
+				"configs/corpora-deu_news_2023_10K-export.txt",
+			},
+		},
 	}
 }
 
