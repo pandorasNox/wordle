@@ -567,10 +567,6 @@ func main() {
 	mux.HandleFunc("GET /", func(w http.ResponseWriter, req *http.Request) {
 		sess := handleSession(w, req, &sessions, wordDb)
 
-		// io.WriteString(w, fmt.Sprintf("Hello, world!\n%s", sessions))
-		//io.WriteString(w, fmt.Sprintf("Hello, world! %s\n", session.id))
-		log.Printf("sessions:\n%s", sessions)
-
 		p := sess.lastEvaluatedAttempt
 		// log.Printf("debug '/' route - sess.lastEvaluatedAttempt:\n %v\n", wo)
 		p.Debug = sess.activeSolutionWord.String()
