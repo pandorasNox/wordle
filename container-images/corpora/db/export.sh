@@ -70,9 +70,9 @@ func_do() {
 
 cat << EOF > ${tmpQueryFilePath}
 USE ${dir};
-SELECT word FROM words
+SELECT LOWER(word) FROM words
 WHERE CHAR_LENGTH(word) = 5
-  AND word RLIKE "^[a-z]+$"
+  AND word RLIKE "^[A-Z]?[a-z]+$"
   AND freq > 1
 ORDER BY freq DESC, word
 INTO OUTFILE '${exportFilePath}'
