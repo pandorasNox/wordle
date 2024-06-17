@@ -147,6 +147,16 @@ func (w word) count(letter rune) int {
 	return count
 }
 
+func (w word) isEqual(compare word) bool {
+	for i, v := range w {
+		if v != compare[i] {
+			return false
+		}
+	}
+
+	return true
+}
+
 func (w word) hasDublicateLetters() bool {
 	for _, l := range w {
 		if w.count(l) >= 2 {
@@ -399,7 +409,13 @@ func (wdb wordDatabase) Exists(l language, w word) bool {
 	return ok
 }
 
-func (wdb wordDatabase) RandomPick(l language) (word, error) {
+func (wdb wordDatabase) RandomPick(l language, avoidList []word, retryAkkumulator uint8) (word, error) {
+	const MAX_RETRY uint8 = 10
+
+	if retryAkkumulator > MAX_RETRY {
+		return word{}, fmt.Errorf("RandomPick exceeded retries: retryAkkumulator='%d' | MAX_RETRY='%d'", retryAkkumulator, MAX_RETRY)
+	}
+
 	db, ok := wdb.db[l]
 	if !ok {
 		return word{}, fmt.Errorf("RandomPick failed with unknown language: '%s'", l)
@@ -423,6 +439,14 @@ func (wdb wordDatabase) RandomPick(l language) (word, error) {
 	currentLine := 0
 	for w := range db_c {
 		if currentLine == rolledLine {
+
+			wordContained := slices.ContainsFunc(avoidList, func(wo word) bool {
+				return w.isEqual(wo)
+			})
+			if wordContained {
+				return wdb.RandomPick(l, avoidList, retryAkkumulator+1)
+			}
+
 			return w, nil
 		}
 
@@ -432,8 +456,8 @@ func (wdb wordDatabase) RandomPick(l language) (word, error) {
 	return word{}, fmt.Errorf("RandomPick could not find random line aka this should never happen ^^")
 }
 
-func (wdb wordDatabase) RandomPickWithFallback(l language) word {
-	w, err := wdb.RandomPick(l)
+func (wdb wordDatabase) RandomPickWithFallback(l language, avoidList []word, retryAkkumulator uint8) word {
+	w, err := wdb.RandomPick(l, avoidList, retryAkkumulator)
 	if err != nil {
 		return word{'R', 'O', 'A', 'T', 'E'}.ToLower()
 	}
@@ -659,7 +683,7 @@ func main() {
 
 		s.lastEvaluatedAttempt = p
 		s.AddPastWord(s.activeSolutionWord)
-		s.activeSolutionWord = wordDb.RandomPickWithFallback(l)
+		s.activeSolutionWord = wordDb.RandomPickWithFallback(l, []word{}, 0)
 		sessions.updateOrSet(s)
 
 		p.Debug = s.activeSolutionWord.String()
@@ -775,7 +799,7 @@ func constructCookie(s session) http.Cookie {
 func generateSession(lang language, wdb wordDatabase) session { //todo: pass it by ref not by copy?
 	id := uuid.NewString()
 	expiresAt := generateSessionLifetime()
-	activeWord, err := wdb.RandomPick(lang)
+	activeWord, err := wdb.RandomPick(lang, []word{}, 0)
 	if err != nil {
 		log.Printf("pick random word failed: %s", err)
 
