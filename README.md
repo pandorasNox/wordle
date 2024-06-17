@@ -10,7 +10,7 @@
 
 ## quiz
 ### what happens on server side
-* [80%] word generation – requires: allowed word list, words to exclude (previous taken quizes)
+* [x] word generation – requires: allowed word list
 * [x] input validation (check matches) – requires: allowed word list, generated/current word, input of last word, number of tries
 * [x] trigger like quiz win/fail – requires: number of tries
 * [ ] refactoring
@@ -30,12 +30,15 @@
     * [x] bugfix: full page get form submit request on random occations when it should just be a htmx post
     * [ ] editorial work: e.g. words like games or gamer are missing + maybe we introduce a common vs uncommen word list
         * [ ] word suggestion (button to save (unknown) word eg. in LiteFS/email/github-issue/something)
-        * https://corpora.uni-leipzig.de/en/res?corpusId=eng_news_2023&word=would
-        * https://github.com/Leipzig-Corpora-Collection
+        * [x] corpora dataset export https://corpora.uni-leipzig.de/en/res?corpusId=eng_news_2023&word=would
+            * https://github.com/Leipzig-Corpora-Collection
         * https://api.wortschatz-leipzig.de/ws/swagger-ui/index.html#/Words/getWordInformation
         * https://wortschatz.uni-leipzig.de/en/download/English
+    * [ ] avoid same word twice (words to exclude (previous taken quizes))
+    * [ ] fix past words display
 - nice-to-have
     * [x] option for double letter hint
+    * [ ] pick word dataset picker
     * [ ] get definition (e.g. wikitionary)
         * options:
             * https://raw.githubusercontent.com/wordset/wordset-dictionary/master/data/%s.json
