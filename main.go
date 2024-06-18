@@ -574,7 +574,12 @@ func main() {
 
 	// t := template.Must(template.ParseFS(fs, "templates/index.html.tmpl", "templates/lettr-form.html.tmpl"))
 	// log.Printf("template name: %s", t.Name())
-	t := template.Must(template.New("index.html.tmpl").Funcs(funcMap).ParseFS(fs, "templates/index.html.tmpl", "templates/lettr-form.html.tmpl"))
+	t := template.Must(template.New("index.html.tmpl").Funcs(funcMap).ParseFS(
+		fs,
+		"templates/index.html.tmpl",
+		"templates/lettr-form.html.tmpl",
+		"templates/help.html.tmpl",
+	))
 
 	mux := http.NewServeMux()
 
@@ -603,6 +608,25 @@ func main() {
 		err := t.ExecuteTemplate(w, "index.html.tmpl", fData)
 		if err != nil {
 			log.Printf("error t.Execute '/' route: %s", err)
+		}
+	})
+
+	mux.HandleFunc("GET /lettr", func(w http.ResponseWriter, r *http.Request) {
+		s := handleSession(w, r, &sessions, wordDb)
+
+		p := s.lastEvaluatedAttempt
+
+		sessions.updateOrSet(s)
+
+		p.Debug = s.activeSolutionWord.String()
+
+		fData := FormData{}.New(s.language, p, s.PastWords(), s.activeSolutionWord.hasDublicateLetters())
+		fData.IsSolved = p.isSolved()
+		fData.IsLoose = p.isLoose()
+
+		err = t.ExecuteTemplate(w, "lettr-form", fData)
+		if err != nil {
+			log.Printf("error t.ExecuteTemplate '/lettr' route: %s", err)
 		}
 	})
 
@@ -696,6 +720,25 @@ func main() {
 		err := t.ExecuteTemplate(w, "lettr-form", fData)
 		if err != nil {
 			log.Printf("error t.ExecuteTemplate '/new' route: %s", err)
+		}
+	})
+
+	mux.HandleFunc("POST /help", func(w http.ResponseWriter, r *http.Request) {
+		s := handleSession(w, r, &sessions, wordDb)
+
+		p := s.lastEvaluatedAttempt
+
+		sessions.updateOrSet(s)
+
+		p.Debug = s.activeSolutionWord.String()
+
+		fData := FormData{}.New(s.language, p, s.PastWords(), s.activeSolutionWord.hasDublicateLetters())
+		fData.IsSolved = p.isSolved()
+		fData.IsLoose = p.isLoose()
+
+		err := t.ExecuteTemplate(w, "help", fData)
+		if err != nil {
+			log.Printf("error t.ExecuteTemplate '/help' route: %s", err)
 		}
 	})
 

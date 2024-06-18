@@ -1,0 +1,97 @@
+
+{{ define "help" }}
+    <section class="px-2 max-w-sm mx-auto">
+        <h2 class="text-center mb-6">{{ if .IsSolved }}SOLVED{{ else if .IsLoose }}YOU LOOSE{{ else }}unsolved{{ end }}</h2>
+        <nav class="grid grid-cols-4 gap-4 items-center mb-1">
+            <button
+                class="text-xs text-gray-900 bg-white border border-gray-300 focus:outline-none hover:bg-gray-100 focus:ring-4 focus:ring-gray-100 font-medium rounded-lg px-3.5 py-1.5 dark:bg-gray-800 dark:text-white dark:border-gray-700 dark:hover:bg-gray-700 dark:hover:border-gray-600 dark:focus:ring-gray-700"
+                hx-get="/lettr"
+                hx-target="#lettr-container"
+            >
+                <span>&lt; Back</span>
+            </button>
+            <h2 class="col-span-2">help</h2>
+        </nav>
+        <div class="container mb-1">
+
+            <!-- start accordion-tab  -->
+            <div class="border rounded border-gray-300 dark:border-gray-700">
+                <label for="collapse100" class="ease relative flex cursor-pointer items-center dark:bg-gray-900 px-4 py-3 pr-10 text-gray-500 transition duration-500">
+                    <svg class="h-4 w-4 mr-2" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" />
+                    </svg>
+                    <span>Show if word has duplicates</span>
+                </label>
+                <input class="peer appearance-none hidden" type="checkbox" name="collapse100" id="collapse100" />
+
+                <div class="ease max-h-0 peer-checked:max-h-screen overflow-hidden peer-checked:border-t border-gray-300 dark:border-gray-800 bg-gray-100 dark:bg-gray-800 px-4 duration-500">
+                    <div class="p-3">
+                        {{ template "has-duplicates" . }}
+                    </div>
+                </div>
+            </div>
+            <!-- end accordion-tab  -->
+
+            <!-- start accordion-tab  -->
+            <div class="border rounded border-gray-300 dark:border-gray-700">
+                <label for="collapse200" class="ease relative flex cursor-pointer items-center dark:bg-gray-900 px-4 py-3 pr-10 text-gray-500 transition duration-500">
+                    <svg class="h-4 w-4 mr-2" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" />
+                    </svg>
+                    <span>Show solution</span>
+                </label>
+                <input class="peer appearance-none hidden" type="checkbox" name="collapse200" id="collapse200" />
+
+                <div class="ease max-h-0 peer-checked:max-h-screen overflow-hidden peer-checked:border-t border-gray-300 dark:border-gray-800 bg-gray-100 dark:bg-gray-800 px-4 duration-500">
+                    <div class="p-3">
+                        {{ template "show-solution" . }}
+                    </div>
+                </div>
+            </div>
+            <!-- end accordion-tab  -->
+        </div>
+
+        {{ template "past-words" . }}
+    </section>
+{{ end }}
+
+{{ define "has-duplicates" }}
+    <p>
+        <span>has duplicates?: </span>
+        <span class="w-5 text-pink-500">{{ if .SolutionHasDublicateLetters }}yes{{ else }}no{{ end }}</span>
+    </p>
+{{ end }}
+
+{{ define "show-solution" }}
+    <p>
+        <span>solution: </span>
+        <span class="text-pink-500" >{{ .Data.Debug }}</span>
+    </p>
+{{ end }}
+
+{{ define "past-words" }}
+  <div class="mb-10 grid col-1 justify-center">
+    <input type="checkbox" id="show-past-words-checkbox" class="peer hidden absolute" />
+    <label for="show-past-words-checkbox" class="flex items-center space-x-1 cursor-pointer text-xs text-gray-900 bg-white border border-gray-300 focus:outline-none hover:bg-gray-100 focus:ring-4 focus:ring-gray-100 font-medium rounded-lg px-3.5 py-1.5 dark:bg-gray-800 dark:text-white dark:border-gray-700 dark:hover:bg-gray-700 dark:hover:border-gray-600 dark:focus:ring-gray-700">
+      <svg class="h-4 w-4" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" />
+      </svg>
+      <span class="text-lg">Past Words</span>
+    </label>
+    <div id="past-words-content"
+      class="mt-0 origin-top-left bg-white divide-y divide-gray-100 dark:bg-gray-700 rounded-md shadow-lg opacity-0 hidden peer-checked:h-full peer-checked:opacity-100 peer-checked:block transition duration-300"
+    >
+      <ul class="py-2 font-medium text-center">
+        {{ range $ri, $word := .PastWords }}
+        <li>
+          <span
+            class="block px-4 py-2 text-gray-700 dark:text-gray-400"
+          >
+            {{ $word }}
+          </span>
+        </li>
+        {{ end }}
+      </ul>
+    </div>
+  </div>
+{{ end }}

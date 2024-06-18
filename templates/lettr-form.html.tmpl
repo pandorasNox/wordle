@@ -5,17 +5,19 @@
     <div class="inline-block m-auto">
         <div>
             <div id="any-errors" class="min-h-6 text-red-600 dark:text-red-400"></div>
-            <div class="mb-1 flex items-center justify-between">
-              <div class="group">
-                <button >show solution</button>
-                <span class="w-5 text-pink-500 invisible opacity-0 group-hover:opacity-100 group-hover:visible">{{ .Data.Debug }}</span>
-              </div>
-              <button class="text-xs text-gray-900 bg-white border border-gray-300 focus:outline-none hover:bg-gray-100 focus:ring-4 focus:ring-gray-100 font-medium rounded-lg px-3.5 py-1.5 dark:bg-gray-800 dark:text-white dark:border-gray-700 dark:hover:bg-gray-700 dark:hover:border-gray-600 dark:focus:ring-gray-700"
-                hx-post="/new"
-                hx-target="#lettr-container"
-              >
-                New Game
-              </button>
+            <div class="mb-1 flex justify-end">
+                <button class="mr-1 text-xs text-gray-900 bg-white border border-gray-300 focus:outline-none hover:bg-gray-100 focus:ring-4 focus:ring-gray-100 font-medium rounded-lg px-3.5 py-1.5 dark:bg-gray-800 dark:text-white dark:border-gray-700 dark:hover:bg-gray-700 dark:hover:border-gray-600 dark:focus:ring-gray-700"
+                  hx-post="/help"
+                  hx-target="#lettr-container"
+                >
+                  ?
+                </button>
+                <button class="text-xs text-gray-900 bg-white border border-gray-300 focus:outline-none hover:bg-gray-100 focus:ring-4 focus:ring-gray-100 font-medium rounded-lg px-3.5 py-1.5 dark:bg-gray-800 dark:text-white dark:border-gray-700 dark:hover:bg-gray-700 dark:hover:border-gray-600 dark:focus:ring-gray-700"
+                  hx-post="/new"
+                  hx-target="#lettr-container"
+                >
+                  New Game
+                </button>
             </div>
         </div>
         <form
@@ -97,10 +99,6 @@
         </form>
     </div>
     {{ template "keyboard" . }}
-    <div class="group text-center">
-        <button >has duplicates?</button>
-        <span class="w-5 text-pink-500 invisible opacity-0 group-hover:opacity-100 group-hover:visible">{{ if .SolutionHasDublicateLetters }}yes{{ else }}no{{ end }}</span>
-    </div>
   </div>
 {{ end }}
 
