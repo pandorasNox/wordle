@@ -35,7 +35,7 @@
             * https://github.com/Leipzig-Corpora-Collection
         * https://api.wortschatz-leipzig.de/ws/swagger-ui/index.html#/Words/getWordInformation
         * https://wortschatz.uni-leipzig.de/en/download/English
-    * [ ] fix past words display
+    * [x] fix past words display
 - nice-to-have
     * [x] option for double letter hint
     * [ ] pick word dataset picker
