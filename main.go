@@ -707,7 +707,7 @@ func main() {
 
 		s.lastEvaluatedAttempt = p
 		s.AddPastWord(s.activeSolutionWord)
-		s.activeSolutionWord = wordDb.RandomPickWithFallback(l, []word{}, 0)
+		s.activeSolutionWord = wordDb.RandomPickWithFallback(l, s.pastWords, 0)
 		sessions.updateOrSet(s)
 
 		p.Debug = s.activeSolutionWord.String()

@@ -28,7 +28,7 @@
     * [x] protect against request size + correct http 413 error code throw
     * [x] fix scripts/tools.sh func_exec_cli passing parameter issue
     * [x] bugfix: full page get form submit request on random occations when it should just be a htmx post
-    * [ ] avoid same word twice (words to exclude (previous taken quizes))
+    * [x] avoid same word twice (words to exclude (previous taken quizes))
     * [ ] editorial work: e.g. words like games or gamer are missing + maybe we introduce a common vs uncommen word list
         * [ ] word suggestion (button to save (unknown) word eg. in LiteFS/email/github-issue/something)
         * [x] corpora dataset export https://corpora.uni-leipzig.de/en/res?corpusId=eng_news_2023&word=would
